@@ -2,23 +2,51 @@
 // mockup tool
 // 1/14/2018
 
+
+// data to drive the view
+// TODO module pattern singleton
 var gProto = {
-  'screenFiles':[],
-  'links':[],
+  'screenFiles':{},
+  'links':{},
+  'mappings': {
+    'screen2links': {}
+  },
   'settings':{
     output: {
       title: 'Prototype'
     },
     homeScreenFile:'',
-    downloadFile:'proto1.html'
-  }  // imgPath
+    downloadFilename:'proto1.html',
+    imgPath: ''   // relative path to image folder
+  },
+  getLinksForScreen: function(screenId) {
+    var linkNames = this.mappings.screen2links[screenId];
+    var selectedLinks = [];
+    for(var i = 0; i < linkNames.length; i++) {
+      selectedLinks.push(this.links[linkNames[i]]);
+    }
+    return selectedLinks;
+  },
+  getScreenFile: function(screenId) {
+    return this.screenFiles[screenId];
+  }
 };
 
-var gActiveScreenIndex = -1;
+
+// var gScreenState = {
+//   'activeScreenIndex': -1,
+//   'isStartingRectangle': false,
+//   'isSelectedRectangle': false;
+// };
+
+
+// var gActiveScreenIndex = -1;
+var gActiveScreenId;
 
 var divRectCandidate = {};
 var gIsStartingRectangle = false;
 var gIsSelectedRectangle = false;
+var gSelectedLinks = {};  // array of trues, allowing for individual read/update, and all read/remove
 
 // ------------ utility fns --------------------------
 function makeIdname(str) {
@@ -63,12 +91,7 @@ function OkDialog(msg) {
     'left': '50%', 'top': '50%', 'transform': 'translate(-50%, -50%)',
     'borderRadius':'4px', 'padding':'1rem'
   });
-  // dialogBox.style.position = 'absolute';
-  // dialogBox.style.backgroundColor = '#eee';
-  // dialogBox.style.color = '#333';
-  // dialogBox.style.left = '50%';
-  // dialogBox.style.top = '50%';
-  // dialogBox.style.transform = 'translate(-50%, -50%)';
+
   dialogBox.appendChild(msgElem);
   dialogBox.appendChild(buttonWrapper);
   var backgroundOverlay = document.createElement('div');
@@ -77,13 +100,7 @@ function OkDialog(msg) {
     'backgroundColor': 'rgba(0,0,0,0.65)', 'height': '100%', 'width': '100%',
     'top': '0', 'left':'0', 'z-index':1, 'position': 'fixed'
   });
-  // backgroundOverlay.style.backgroundColor = 'rgba(0,0,0,0.65)';
-  // backgroundOverlay.style.height = '100%';
-  // backgroundOverlay.style.width = '100%';
-  // backgroundOverlay.style.top = '0';
-  // backgroundOverlay.style.left = '0';
-  // backgroundOverlay.style.zIndex = '1';
-  // backgroundOverlay.style.position = 'fixed';
+
   backgroundOverlay.appendChild(dialogBox);
   document.getElementsByTagName('body')[0].appendChild(backgroundOverlay);
 }
@@ -95,74 +112,69 @@ function setupFileDisplayPanel() {
 
   // set image
   var displayFile = document.getElementById('fileDisplayImage');
-  displayFile.src = gProto.screenFiles[gActiveScreenIndex].fileMeta.src;  //this.src;
+  displayFile.src = gProto.screenFiles[gActiveScreenId].fileMeta.src;  //this.src;
   displayFile.onmousedown = function(ev) {
     // prevent that dragging of img behavior
     ev.preventDefault();
   }
 
   // remove all links being displayed from prior screen
-  var nodeList = document.querySelectorAll('#FileDisplay .source-box');
-  // for(var i = 0; i < nodeList.length; i++) nodeList[i].remove();
+  var nodeList = document.querySelectorAll('#FileDisplay .srclinkbox');
   nodeList.forEach(function(x) {x.remove();});
 
   // add links of new screen
-  for(i = 0; i < gProto.links.length; i++) {
-    if(gProto.links[i].src.srcScreenId === gProto.screenFiles[gActiveScreenIndex].fileMeta.idname) {
-      // add div of link box to filedisplaypanel
-      var bc = gProto.links[i].src;
-      var linkDiv = makeLinkBox();
-      linkDiv = updateDivWithBoxCoords.call(displayFile, linkDiv, bc);
-      linkDiv.id = gProto.links[i].src.boxId;
-      fileDisplayPanel.appendChild(linkDiv);
-    }
-  }
+  var links = gProto.getLinksForScreen(gActiveScreenId);
+  links.forEach(function(x) {
+    // add div of link box to filedisplaypanel
+    var bc = x.src;
+    var linkDiv = makeLinkBox();
+    linkDiv = updateDivWithBoxCoords.call(displayFile, linkDiv, bc);
+    fileDisplayPanel.appendChild(linkDiv);
+  })
 }
 
 function setupThumbnailsPanel() {
   var screenThumbnailsPanel = document.getElementById('ScreenThumbnailsPanel');
   // remove all nodes, and recreate all screen thumbnails
   removeChildNodes(screenThumbnailsPanel);
-  gProto.screenFiles.forEach(function(x, index, arr) {
+
+  Object.keys(gProto.screenFiles).forEach(function(x) {
+    var screenFile = gProto.screenFiles[x];
     var imgDiv = document.createElement('div');
     var img = document.createElement("img");
     var imgDesc = document.createElement("p");
     imgDiv.classList.add('thumbnailDiv');
     img.classList.add('thumbnail');
     imgDesc.classList.add('thumbnailDesc');
-    img.fmIdName = x.fileMeta.idname;  // tie image back to gProto
+    img.id = screenFile.fileMeta.idname + '-thumb';
+    img.fmIdName = screenFile.fileMeta.idname;  // tie image back to gProto
     img.addEventListener('click', function(ev) {
-      console.log(this.fmIdName + " click");
+      // console.log(this.fmIdName + " click");
       if(!gIsSelectedRectangle) {  // selecting thumbnail to set screen to work on
-        gActiveScreenIndex = index;
+        gActiveScreenId = screenFile.fileMeta.idname;
         setupFileDisplayPanel();
       }
       else   // part of link construction - selecting thumbnail as the target
       {
         // update selected link(s) with target
-        var linkBoxesDom = document.getElementsByClassName('source-box-selected');
-        linkBoxes = Array.prototype.slice.call(linkBoxesDom);
-        var targetScreenId = this.fmIdName;
-        linkBoxes.forEach(function(x) {
-          for(var i = 0; i < gProto.links.length; i++) {
-            if(gProto.links[i].src.boxId === x.id) break;
-          }
-          var link = gProto.links[i];
-          link.tgt.targetId = targetScreenId;
-          /*link*/
+        var targetScreenId = this.fmIdName;  // TODO - do I need this line?
+        Object.keys(gSelectedLinks).forEach(function(x) {
+            gProto.links[x].tgt.targetId = targetScreenId;
         });
 
-        // now unselect items
+        // now unselect links
+        gSelectedLinks = {};
+        // and re-render
+        var linkBoxesDom = document.getElementsByClassName('srclinkbox-selected');
         for(var i = 0; i < linkBoxesDom.length; i++) {
-          linkBoxesDom[i].classList.remove('source-box-selected');
+          linkBoxesDom[i].classList.remove('srclinkbox-selected');
         }
         gIsSelectedRectangle = false;
-
       }
     });
 
     img.addEventListener('dblclick', function() {
-      console.log(this.fmIdName + " dblclick");
+      // console.log(this.fmIdName + " dblclick");
       // remove old home
       if(gProto.settings.homeScreenFile) {
         document.getElementById(gProto.settings.homeScreenFile + "-homeIcon").remove();
@@ -171,49 +183,33 @@ function setupThumbnailsPanel() {
       gProto.settings.homeScreenFile = this.fmIdName;
       var svgHomeDiv = document.getElementsByClassName('homeIcon')[0].cloneNode(true);
       svgHomeDiv.id = this.fmIdName + "-homeIcon";
-      // svgHome.id = svgHome.id + "1";
-      // svgHomeDiv.style.zIndex = '1000';
-      // svgHomeDiv.style.width = '40%'; // '45px';
-      // svgHomeDiv.style.width = '45px';
-      // svgHomeDiv.style.height = '40%'; // '40px';
-      // svgHomeDiv.style.height = '40px';
-      // svgHomeDiv.style.position = 'absolute';
-      // svgHomeDiv.style.top = '0px';
-      // svgHomeDiv.style.left = '0px';
-      // svgHomeDiv.style.border = '1px solid red';
-      // svgHomeDiv.appendChild(svgHome)
-
-      // svgHome.appendChild(document.getElementById('home').cloneNode(true));
-      // svgHome.setAttribute('viewBox',"0 0 40 40");
-
       this.parentNode.appendChild(svgHomeDiv);
-      // document.getElementById('Header').appendChild(svgHomeDiv);
-
     })
 
-    imgDesc.innerHTML = x.fileMeta.name;
+    imgDesc.innerHTML = screenFile.fileMeta.name;
     imgDiv.style.position = 'relative';
     imgDiv.appendChild(img);
 
     // append thumbnail link boxes to imgDiv too
     img.onload = function() {
       // set image attributes, which we should have here.
-      gProto.screenFiles[index].fileMeta.naturalWidth = this.naturalWidth;
-      gProto.screenFiles[index].fileMeta.naturalHeight = this.naturalHeight;
-      var id = gProto.screenFiles[index].fileMeta.idname;
+      screenFile.fileMeta.naturalWidth = this.naturalWidth;
+      screenFile.fileMeta.naturalHeight = this.naturalHeight;
+      var id = screenFile.fileMeta.idname;
       var imgPixelRatio = (id[id.length-1]==='x')&&(!isNaN(id[id.length-2])) ? parseInt(id[id.length-2],10): 1
-      gProto.screenFiles[index].fileMeta.imgPixelRatio = imgPixelRatio;
-      console.log('file loaded - ' + gProto.screenFiles[index].fileMeta.name + " nw="
-        + gProto.screenFiles[index].fileMeta.naturalWidth + " nh=" + gProto.screenFiles[index].fileMeta.naturalHeight);
+      screenFile.fileMeta.imgPixelRatio = imgPixelRatio;
+      // console.log('file loaded - ' + screenFile.fileMeta.name + " nw="
+        // + screenFile.fileMeta.naturalWidth + " nh=" + screenFile.fileMeta.naturalHeight);
 
-      for(var i = 0; i < gProto.links.length; i++) {
-        if(gProto.links[i].src.srcScreenId === x.fileMeta.idname) {
-          var bc = gProto.links[i].src;
-          var tmDiv = updateDivWithBoxCoords.call(this, document.createElement('div'), bc);
-          tmDiv.classList.add('source-box-tm');
-          imgDiv.appendChild(tmDiv);
-        }
-      }
+      // load mini link boxes for links mapped to the screen
+      var links = gProto.getLinksForScreen(screenFile.fileMeta.idname);
+      links.forEach(function(y) {
+        var bc = y.src;
+        // does this refer to img here ??
+        var tmDiv = updateDivWithBoxCoords.call(this, document.createElement('div'), bc);
+        tmDiv.classList.add('srclinkbox-tm');
+        imgDiv.appendChild(tmDiv);
+      });
     }
 
     var thumbnailItem = document.createElement('div');
@@ -226,15 +222,10 @@ function setupThumbnailsPanel() {
     fr.onload = (function(imgX) {
       return function(e) {
         imgX.src = e.target.result;
-        gProto.screenFiles[index].fileMeta.src = e.target.result;
-        // gProto.screenFiles[index].fileMeta.naturalWidth = imgX.naturalWidth;
-        // gProto.screenFiles[index].fileMeta.naturalHeight = imgX.naturalHeight;
-        // var id = gProto.screenFiles[index].fileMeta.idname;
-        // var imgPixelRatio = (id[id.length-1]==='x')&&(!isNaN(id[id.length-2])) ? parseInt(id[id.length-2],10): 1
-        // gProto.screenFiles[index].fileMeta.imgPixelRatio = imgPixelRatio;
+        screenFile.fileMeta.src = e.target.result;
       };
     })(img)
-    fr.readAsDataURL(x.fileMeta);
+    fr.readAsDataURL(screenFile.fileMeta);
   });
 }
 
@@ -249,7 +240,8 @@ function handleFiles(fileList) {
     var screenFileItem = {};
     screenFileItem.fileMeta = x;
     screenFileItem.fileMeta.idname = makeIdname(x.name);
-    gProto.screenFiles.push(screenFileItem);
+    gProto.screenFiles[screenFileItem.fileMeta.idname] = screenFileItem;
+    gProto.mappings.screen2links[screenFileItem.fileMeta.idname] = [];
   });
 
   setupThumbnailsPanel();
@@ -272,7 +264,7 @@ function computeBoxCoords(origX, origY, currentX, currentY) {
   var yFactor = startY / rect.height;
   var widthFactor = w / rect.width;
   var heightFactor = h / rect.height;
-  //- return {startX: startX, startY: startY, width: w, height: h,
+
   return {xFactor: xFactor, yFactor: yFactor,
     widthFactor: widthFactor, heightFactor: heightFactor,
     containerWidth: rect.width, containerHeight: rect.height,
@@ -281,14 +273,6 @@ function computeBoxCoords(origX, origY, currentX, currentY) {
     };
 }
 
-// function updateDivWithBoxCoords(divNode, bc, rect) {
-//   var scrollX = window.scrollX; var scrollY = window.scrollY;
-//   divNode.style.height = bc.heightFactor*rect.height + 'px';
-//   divNode.style.width = bc.widthFactor*rect.width + 'px';
-//   divNode.style.top = (scrollY + rect.top + bc.yFactor*rect.height) + 'px';
-//   divNode.style.left = (scrollX + rect.left + bc.xFactor*rect.width) + 'px';
-//   return divNode;
-// }
 
 // currently for position absolute divs (where parent is position relative)
 function updateDivWithBoxCoords(div, bc) {
@@ -306,18 +290,28 @@ function updateDivWithBoxCoords(div, bc) {
   return div;
 }
 
-function makeLinkBox() {
+function makeLinkBox(newId) {
   var divRect = document.createElement('div');
-  divRect.classList.add('source-box');
+  divRect.id = newId;
+  divRect.classList.add('srclinkbox');
   divRect.addEventListener('click', function(ev) {
     console.log('div clicked ' + this.id);
 
-    if(this.classList.contains('source-box-selected')) {
-      this.classList.remove('source-box-selected');
+    if(this.classList.contains('srclinkbox-selected')) {
+      this.classList.remove('srclinkbox-selected');
     } else {
-      this.classList.add('source-box-selected');
+      this.classList.add('srclinkbox-selected');
     }
-    gIsSelectedRectangle = document.getElementsByClassName('source-box-selected').length > 0;
+
+    if(gSelectedLinks[this.id])
+      delete gSelectedLinks[this.id];
+    else
+      gSelectedLinks[this.id] = true;
+
+    // ?? below line - use gSelectedLinks instead I think
+    // gIsSelectedRectangle = document.getElementsByClassName('srclinkbox-selected').length > 0;
+    // summing up trues
+    gIsSelectedRectangle = Object.values(gSelectedLinks).reduce(function(t,cv) {return t+cv;},0);
     ev.stopPropagation();
   });
   divRect.onmousedown = function(ev) { ev.stopPropagation(); }
@@ -332,15 +326,15 @@ function makeLinkBox() {
 }
 
 
-// create source box (where user will click)
+// create source linkbox (where user will click)
 function startRectangle(ev) {
   console.log('startRectangle');
   gIsStartingRectangle = true;
   var rect = this.getBoundingClientRect();
-  var nextIdNum = 1 + document.getElementsByClassName('source-box').length;
-
-  var divRect = makeLinkBox();
-  divRect.id = gProto.screenFiles[gActiveScreenIndex].fileMeta.idname + '-sourcebox-' + nextIdNum; // ?? pagedesc + ...
+  var nextIdNum = 1 + document.getElementsByClassName('srclinkbox').length;
+  var nextId = gProto.getScreenFile(gActiveScreenId).fileMeta.idname + '-srclinkbox-' + nextIdNum;
+  var divRect = makeLinkBox(nextId);
+  divRect.id = gProto.screenFiles[gActiveScreenId].fileMeta.idname + '-srclinkbox-' + nextIdNum; // ?? pagedesc + ...
 
   divRectCandidate.startX = ev.clientX - rect.left;
   divRectCandidate.startY = ev.clientY - rect.top;
@@ -349,13 +343,13 @@ function startRectangle(ev) {
 };
 
 // mouse move
-//- function updateRectangle(ev) {
-//- console.log('updateRectangle');
-//- if(!gIsStartingRectangle) return;
-//-   var bc = computeBoxCoords.call(this,divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
-//-   var divRect = divRectCandidate.divRect;
-//-   divRect = updateDivWithBoxCoords(divRect, bc, this.getBoundingClientRect());
-//- };
+// function updateRectangle(ev) {
+// console.log('updateRectangle');
+// if(!gIsStartingRectangle) return;
+//   var bc = computeBoxCoords.call(this,divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
+//   var divRect = divRectCandidate.divRect;
+//   divRect = updateDivWithBoxCoords(divRect, bc, this.getBoundingClientRect());
+// };
 
 function endRectangle(ev) {
   console.log('endRectangle');
@@ -371,12 +365,12 @@ function endRectangle(ev) {
 
   var link = {};
   link.src = {
-    xFactor: bc.xFactor,  //boxCoords.startX / boxCoords.containerWidth,
-    yFactor: bc.yFactor,  //boxCoords.startY / boxCoords.containerHeight,
-    widthFactor: bc.widthFactor,  // boxCoords.width / boxCoords.containerWidth,
-    heightFactor: bc.heightFactor,  //boxCoords.height / boxCoords.containerHeight,
+    xFactor: bc.xFactor,
+    yFactor: bc.yFactor,
+    widthFactor: bc.widthFactor,
+    heightFactor: bc.heightFactor,
     boxId: divRect.id,
-    srcScreenId: gProto.screenFiles[gActiveScreenIndex].fileMeta.idname
+    srcScreenId: gProto.screenFiles[gActiveScreenId].fileMeta.idname
   }
   link.meta = {
     isSelected: false  // not used, maybe remove as we track selected via css class on div linkbox
@@ -384,7 +378,11 @@ function endRectangle(ev) {
   link.tgt = {
     targetId: ''
   }
-  gProto.links.push(link);
+  // gProto.links.push(link);
+  // TODO gProto.addLink(id, link)
+  gProto.links[link.src.boxId] = link;
+  gProto.mappings.screen2links[gProto.screenFiles[gActiveScreenId].fileMeta.idname].push(link.src.boxId);
+  // gSelectedLinks[link.src.boxId] = false;
 
   divRect.style.height = link.src.heightFactor*bc.containerHeight + 'px';
   divRect.style.width = link.src.widthFactor*bc.containerWidth + 'px';
@@ -394,28 +392,16 @@ function endRectangle(ev) {
   document.getElementById('FileDisplay').appendChild(divRectCandidate.divRect);
 
   // update thumbnail of screen tool
-  var tmList = document.getElementsByClassName('thumbnail');
-  var tmIndex = -1;
-  for(var i = 0; i < tmList.length; i++) {
-    if(tmList[i].fmIdName === gProto.screenFiles[gActiveScreenIndex].fileMeta.idname)  {
-      tmIndex = i; break;
-    }
-  }
-  var tmDiv = updateDivWithBoxCoords.call(tmList[tmIndex], document.createElement('div'), bc);
-  tmDiv.classList.add('source-box-tm');
-  tmList[i].parentNode.appendChild(tmDiv);
+  var tm = document.getElementById(gProto.screenFiles[gActiveScreenId].fileMeta.idname+'-thumb');
+  var tmDiv = updateDivWithBoxCoords.call(tm, document.createElement('div'), bc);
+  tmDiv.classList.add('srclinkbox-tm');
+  tm.parentNode.appendChild(tmDiv);
   gIsStartingRectangle = false;
 };
 
-//- var fileDisplayDiv = document.getElementById('FileDisplay');
 var fileDisplayImage = document.getElementById('fileDisplayImage')
 fileDisplayImage.addEventListener('mousedown', startRectangle);
 fileDisplayImage.addEventListener('mouseup', endRectangle);
-//- fileDisplayDiv.addEventListener('mousemove', updateRectangle);
-document.getElementsByTagName('body')[0].addEventListener('mouseup',
-  function(ev) {
-    //- console.log('body mouseup')
-});
 
 
 // ------- download link ------------------------------------
@@ -443,20 +429,19 @@ function buildOutputHTML() {
   var scriptCode = "";
 
   // build screen to links map
-  var screen2links = {};
-  gProto.screenFiles.forEach(function(x) { screen2links[x.fileMeta.idname] = [];});
-  for(var i = 0; i < gProto.links.length; i++) {
-    screen2links[gProto.links[i].src.srcScreenId].push(gProto.links[i].src.boxId);
-  }
-  for(i = 0; i < gProto.screenFiles.length; i++) {
-    var screenFileId = gProto.screenFiles[i].fileMeta.idname;
+
+  var screenFiles = Object.keys(gProto.screenFiles);
+  for(i = 0; i < screenFiles.length; i++) {
+    // var screenFileId = gProto.screenFiles[i].fileMeta.idname;
+    var screenFileId = screenFiles[i];
+    var screenFile = gProto.screenFiles[screenFileId];
     var mapName = screenFileId + "-map";
 
     var imgX = "<img";
     // <img srcset="dt-home.png, dt-home2x.png 2x" src="dt-home.png"
     // + 'dt-home.png, dt-home2x.png 2x'
     // TODO if retinaImage i.e. using multiple sets of images, based on adding 2x file
-    var srcSetPath = gProto.screenFiles[i].fileMeta.name;
+    var srcSetPath = screenFile.fileMeta.name;
     if((screenFileId[screenFileId.length-1]==='x') && (!isNaN(screenFileId[screenFileId.length-2]))) {
       var ratio = parseInt(screenFileId[screenFileId.length-2],10);
       var baseFile = srcSetPath.split('.')[0];  // assuming '<filename>2x.png' and one period
@@ -464,40 +449,37 @@ function buildOutputHTML() {
       srcSetPath = baseFile + ", " + srcSetPath + " 2x"
     }
     imgX += " srcset='" + srcSetPath + "'";
-    imgX += " src='" + gProto.screenFiles[i].fileMeta.name + "'";
+    imgX += " src='" + screenFile.fileMeta.name + "'";
     imgX += " usemap='#"+ mapName +"'";
     imgX += "'/>";
 
     // find all links on current screen file
-    // var mapX = "<map name='"+ (gProto.screenFiles[i].fileMeta.idname+"-map") +"'>";
     var mapX = "<map name='"+ mapName +"'>";
-    // for(var j= 0; j < screen2links[gProto.screenFiles[i].fileMeta.idname].length; j++) {
-    for(var j= 0; j < screen2links[screenFileId].length; j++) {
-      // var linkName = screen2links[gProto.screenFiles[i].fileMeta.idname][j];
-      var linkName = screen2links[screenFileId][j];
-      for(var k = 0; k < gProto.links.length; k++) {
-        if(gProto.links[k].src.boxId === linkName) break;
-      }
-      var x1 = gProto.links[k].src.xFactor *
-        (gProto.screenFiles[i].fileMeta.naturalWidth / gProto.screenFiles[i].fileMeta.imgPixelRatio);
-      var y1 = gProto.links[k].src.yFactor *
-        (gProto.screenFiles[i].fileMeta.naturalHeight / gProto.screenFiles[i].fileMeta.imgPixelRatio);
-      var x2 = x1 + gProto.links[k].src.widthFactor *
-        (gProto.screenFiles[i].fileMeta.naturalWidth / gProto.screenFiles[i].fileMeta.imgPixelRatio);
-      var y2 = y1 + gProto.links[k].src.heightFactor *
-        (gProto.screenFiles[i].fileMeta.naturalHeight / gProto.screenFiles[i].fileMeta.imgPixelRatio);
+    var linkNames = gProto.mappings.screen2links[screenFileId];
+    for(var j= 0; j < linkNames.length; j++) {
+      var linkName = linkNames[j];
+
+      var link = gProto.links[linkName];
+      var x1 = link.src.xFactor *
+        (screenFile.fileMeta.naturalWidth / screenFile.fileMeta.imgPixelRatio);
+      var y1 = link.src.yFactor *
+        (screenFile.fileMeta.naturalHeight / screenFile.fileMeta.imgPixelRatio);
+      var x2 = x1 + link.src.widthFactor *
+        (screenFile.fileMeta.naturalWidth / screenFile.fileMeta.imgPixelRatio);
+      var y2 = y1 + link.src.heightFactor *
+        (screenFile.fileMeta.naturalHeight / screenFile.fileMeta.imgPixelRatio);
       mapX += "<area " + "id='"+ linkName +"'"
       mapX += " shape='rect'";
       mapX += " coords='" +  [x1,y1,x2,y2].join(',') + "'";
       mapX += " href='is-this-needed'" + ">";
       mapX += "\n";
 
-      scriptCode += buildLinkHandler(linkName, gProto.links[k].src.srcScreenId, gProto.links[k].tgt.targetId);
+      scriptCode += buildLinkHandler(linkName, link.src.srcScreenId, link.tgt.targetId);
     }
     mapX += "</map>" + "\n";
 
     var initState = screenFileId === gProto.settings.homeScreenFile ? "" : " class='init-state'";
-    var divX = "<div id='" + gProto.screenFiles[i].fileMeta.idname + "'" +
+    var divX = "<div id='" + screenFile.fileMeta.idname + "'" +
       initState + ">" + imgX + mapX+ "</div>" + "\n";
     divSection += divX;
   }  // end process screenfile iteration
@@ -517,7 +499,7 @@ downloadLink.addEventListener('click', function(ev) {
   // error checks
   console.log('download link - click');
   if(!gProto.settings.homeScreenFile) {
-    OkDialog('Oops.  Please set the home screen and then try again.');
+    OkDialog('Oops.  Please set the home screen (double-click thumbnail) and then try again.');
     ev.preventDefault();
     return;
   }

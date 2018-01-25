@@ -72,6 +72,7 @@ html, body {
   grid-row-end:4;
   outline: 2px solid brown;
   position: relative;
+  overflow: scroll;
 }
 
 #fileDisplayImage {
@@ -80,16 +81,16 @@ html, body {
   position: relative;
 }
 
-.source-box {
+.srclinkbox {
   position: absolute;
   border: 4px solid blue;
 }
 
-.source-box-selected {
+.srclinkbox-selected {
   border: 4px solid pink;
 }
 
-.source-box-tm {
+.srclinkbox-tm {
   position: absolute;
   border: 1px solid blue;
 }

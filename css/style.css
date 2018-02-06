@@ -6,6 +6,13 @@
   margin: 0;
 }
 
+img {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
 html, body {
   height: 100vh;
 }
@@ -17,6 +24,8 @@ html, body {
   height: 100%;
 }
 
+
+/*  header and navigation menu */
 #Header {
   grid-column-start:1;
   grid-column-end:3;
@@ -24,6 +33,48 @@ html, body {
   grid-row-end:2;
   outline: 2px solid red;
 }
+
+#Header #mainMenu {
+  display: none;
+  background-color: #333;
+  color: #eee;
+  position:absolute;
+  top: 2rem;
+  left: 0;
+  cursor: pointer;
+  z-index: 1;
+}
+
+#Header #mainMenu a {
+  background-color: #333;
+  color: #eee;
+  text-decoration: none;
+}
+#Header #mainMenu a:hover {
+  background-color: #eee;
+  color: #333;
+}
+
+#Header #mainMenu p:hover {
+  background-color: #eee;
+  color: #333;
+}
+
+#Header #mainMenu.openMenu {
+  display: block;
+}
+
+
+/* essentially, I view this as the button */
+div.barsIconWrapper {
+  height: 1rem;
+  width: 1rem;
+  float: left;
+  padding: 0.5rem;
+  cursor: pointer;
+}
+
+
 
 #ScreenThumbnailsPanel {
   outline: 1px solid orange;

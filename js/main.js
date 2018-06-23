@@ -1,7 +1,7 @@
 /* main.js
   prototype tool
   started late Dec 2017
-  updated May 2018
+  updated May/June 2018
 
 
 */
@@ -142,7 +142,7 @@ function displayMenu(ev) {
   if (!this.classList.contains('menuEnabled')) {
     // is menu closed, then open it up
     this.classList.add('menuEnabled');
-    document.querySelector('#Header #mainMenu').classList.add('openMenu');
+    document.querySelector('#mainMenu').classList.add('openMenu');
   } else {
     // else it is open, so close it
     // processEvent.call(this, ev, 'MENU_CLOSE');
@@ -152,15 +152,13 @@ function displayMenu(ev) {
 
 function closeMenu(ev) {
   this.classList.remove('menuEnabled');
-  document.querySelector('#Header #mainMenu').classList.remove('openMenu');
+  document.querySelector('#mainMenu').classList.remove('openMenu');
 }
 
 function displayThumbnailMenu(ev) {
   var presentDialog = false;
-  // if(!hasChildWithClass(this.parentNode.parentNode, 'thumbnailDialog')) {
-  //   presentDialog = true;
-  // }
-  if (hasChildWithClass(this.parentNode.parentNode, 'thumbnailDialog')) {
+
+  if (hasChildWithClass(this.parentNode, 'thumbnailDialog')) {
     gCurrentState.abort = true;
     return;
   } else {
@@ -175,8 +173,10 @@ function displayThumbnailMenu(ev) {
     var dialog = document
       .getElementsByClassName('thumbnailDialog')[0]
       .cloneNode(true);
-    var thumbnailItem = this.parentNode.parentNode;
-    thumbnailItem.appendChild(dialog);
+    // var thumbnailItem = this.parentNode.parentNode;
+    var thumbnailSidePanel = this.parentNode;
+    var thumbnailItem = thumbnailSidePanel.parentNode;
+    thumbnailSidePanel.appendChild(dialog);
     var homeLink = findDomNodeByClass(dialog, 'setAsHomeLink');
     homeLink.addEventListener('click', function(ev) {
       setHome(thumbnailItem); // set to the thumbnail item div container
@@ -193,7 +193,7 @@ function displayThumbnailMenu(ev) {
 
 function closeThumbnailMenu(ev) {
   // per so, event listeners should get removed too.
-  findDomNodeByClass(this.parentNode.parentNode, 'thumbnailDialog').remove();
+  findDomNodeByClass(this.parentNode, 'thumbnailDialog').remove();
 }
 
 var gActiveScreenId; // currently selected screen file
@@ -221,16 +221,25 @@ function setStyleOnDomObject(domObject, propertyObject) {
 }
 
 function findDomNodeByClass(domNode, className) {
+  // function findDescNodeByClass(domNode, className) {
   var childNodes = Array.prototype.slice
     .call(domNode.childNodes)
     .filter(function(x) {
       return x.nodeName !== '#text';
     });
+
+  // check direct kids
   for (var i = 0; i < childNodes.length; i++) {
     if (childNodes[i].classList.contains(className)) {
       return childNodes[i];
     }
   }
+
+  // check descendants
+  // for (var i = 0; i < childNodes.length; i++) {
+  //   return;
+  // }
+  // return null;
 }
 
 function hasChildWithClass(domNode, className) {
@@ -291,7 +300,7 @@ function OkDialog(msg) {
   document.getElementsByTagName('body')[0].appendChild(backgroundOverlay);
 }
 
-function noOp() {} // mainly for atom styling bug
+function noOp() {} // mainly for atom styling bug ??
 
 // --------------- core fns --------------------------
 // setting up the big screen
@@ -374,11 +383,14 @@ function setupThumbnailsPanel() {
     var screenFile = gProto.screenFiles[x];
 
     var thumbnailItem = thumbnailTemplate.cloneNode(true);
+    // var thumbGrid = findDomNodeByClass(thumbnailItem, 'thumbnailitem-gridwrap');
     var imgDiv = findDomNodeByClass(thumbnailItem, 'thumbnailDiv');
     var img = findDomNodeByClass(imgDiv, 'thumbnail');
     var tbw = findDomNodeByClass(thumbnailItem, 'thumbnailBottomWrapper');
+    // var tbw = findDomNodeByClass(thumbGrid, 'thumbnailBottomWrapper');
     var imgDesc = findDomNodeByClass(tbw, 'thumbnailDesc');
-    var cog = findDomNodeByClass(tbw, 'cogIconWrapper');
+    var tsp = findDomNodeByClass(thumbnailItem, 'thumbnail-sidePanel');
+    var cog = findDomNodeByClass(tsp, 'cogIconWrapper');
 
     // thumbnail menu
     cog.addEventListener('click', function(ev) {
@@ -410,7 +422,7 @@ function setupThumbnailsPanel() {
       // var svgHomeDiv = document.getElementsByClassName('homeIcon')[0].cloneNode(true);
       // svgHomeDiv.id = this.fmIdName + "-homeIcon";
       // this.parentNode.appendChild(svgHomeDiv);
-      setHome(this.parentNode.parentNode);
+      setHome(this.parentNode.parentNode.parentNode);
     });
 
     imgDesc.innerHTML = screenFile.fileMeta.name;
@@ -445,11 +457,6 @@ function setupThumbnailsPanel() {
         imgDiv.appendChild(tmDiv);
       });
     };
-
-    // var thumbnailItem = document.createElement('div');
-    // thumbnailItem.classList.add('thumbnailItem');
-    // thumbnailItem.appendChild(imgDiv);
-    // thumbnailItem.appendChild(imgDesc);
 
     screenThumbnailsPanel.appendChild(thumbnailItem);
     var fr = new FileReader();
@@ -880,18 +887,6 @@ downloadLink.addEventListener('click', function(ev) {
   }
   this.href = buildOutputHTML();
 });
-
-// document.getElementById('setAsHomeLink').addEventListener('click', function(ev) {
-//   setHome(this.parentNode.parentNode);  // set to the thumbnail item div container
-// });
-
-// document.getElementById('deleteScreenFileLink').addEventListener('click', function(ev) {
-//   var thumbnailItem = this.parentNode.parentNode;
-//   var thumbnailDiv = findDomNodeByClass(thumbnailItem, 'thumbnailDiv');
-//   var img = findDomNodeByClass(thumbnailDiv, 'thumbnail');
-//   delete gProto.screenFiles[img.fmIdName];
-//   thumbnailItem.remove();
-// });
 
 document
   .getElementsByClassName('remove-link')[0]

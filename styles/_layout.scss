@@ -1,35 +1,44 @@
-.gridwrap {
+html,
+body {
+  height: 100vh;
+  font-size: $base-font-size;
+  font-family: $base-font-family;
+}
+
+.l-gridwrap {
   display: grid;
   grid-template-columns: 150px auto;
-  grid-template-rows: $header-height 8rem auto;
+  grid-template-rows: $header-height $rowpanel-height auto;
   height: 100%;
 }
 
-.layout-header {
+.l-header {
   grid-column-start: 1;
   grid-column-end: 3;
   grid-row-start: 1;
   grid-row-end: 2;
 }
 
-.layout-selectPanel {
+.l-rowPanel {
   grid-column-start: 1;
   grid-column-end: 3;
   grid-row-start: 2;
   grid-row-end: 3;
-  background-color: #dee;
+  background-color: $primary-color;
+  border: 0px solid $primary-color;
   overflow-x: scroll;
   overflow-y: hidden;
   white-space: nowrap;
+  transition: border 0.25s ease-in;
 }
 
-.layout-statPanel {
+.l-statPanel {
   grid-column-start: 1;
   grid-column-end: 2;
   grid-row-start: 3;
   grid-row-end: 4;
-  /* outline: 2px solid blue; */
-  background-color: #eee;
+  // background-color: #eee;
+  border-right: 1px solid $dark-gray;
   color: #333;
   padding: 0.5rem;
 
@@ -38,7 +47,7 @@
   grid-template-rows: 3rem 7rem auto;
 }
 
-.layout-mainImage {
+.l-mainPanel {
   grid-column-start: 2;
   grid-column-end: 3;
   grid-row-start: 3;

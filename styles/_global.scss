@@ -3,11 +3,6 @@
   margin: 0;
 }
 
-html,
-body {
-  height: 100vh;
-}
-
 img {
   -moz-user-select: none;
   -webkit-user-select: none;
@@ -15,8 +10,17 @@ img {
   user-select: none;
 }
 
-$primary-color: #dee;
+.no-display-wrap {
+  display: none;
+}
+
+$primary-color: #e3eded;
 $dark-gray: #333;
 
 // layout
 $header-height: 2.5rem;
+$rowpanel-height: 7rem;
+
+// typography
+$base-font-size: 16px;
+$base-font-family: Helvetica, sans-serif;

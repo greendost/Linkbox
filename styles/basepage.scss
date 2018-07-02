@@ -1,220 +1,43 @@
 @import 'global';
 @import 'layout';
-
-/* css grid */
-
-/*  --- header and navigation menu -------------------- */
-#mainMenu {
-  display: none;
-  background-color: #333;
-  color: #eee;
-  position: absolute;
-  top: $header-height;
-  left: 0;
-  cursor: pointer;
-  z-index: 2;
-  border-radius: 3px;
-  padding: 4px;
-}
-
-#mainMenu a {
-  background-color: $dark-gray;
-  color: #eee;
-  text-decoration: none;
-}
-
-#mainMenu a:hover {
-  background-color: #eee;
-  color: #333;
-}
-
-#mainMenu p:hover {
-  background-color: #eee;
-  color: #333;
-}
-
-#mainMenu.openMenu {
-  display: block;
-}
-
-/* essentially, I view this as the button */
-div.barsIconWrapper {
-  float: left;
-  /* padding: 0.5rem; */
-  margin-left: 0.5rem;
-  margin-top: 0.5rem;
-  cursor: pointer;
-}
-
-.barsIconWrapper #bars {
-  fill: $dark-gray;
-  height: 1.5rem;
-  width: 1.5rem;
-}
-
-div.dialogOverlay {
-  display: none;
-  position: fixed;
-  background-color: rgba(0, 0, 0, 0.65);
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-  z-index: 3;
-}
-div#SettingsDialog {
-  display: none;
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
-  background-color: #eee;
-  color: #333;
-  border: 1px solid #333;
-  border-radius: 4px;
-  padding: 1rem;
-}
-
-div#SettingsDialog .wrapper {
-  text-align: center;
-}
-
-/* --- Screen thumbnail section ------------------------- */
-
-.thumbnailItem {
-  display: inline-grid;
-  height: 6rem;
-  border-right: 1px solid green;
-  padding: 0 0.25rem;
-  vertical-align: top;
-}
-
-.thumbnailDiv {
-  grid-column-start: 1;
-  grid-column-end: 2;
-  grid-row-start: 1;
-  grid-row-end: 2;
-  margin: 0 auto 0.25rem;
-  position: relative;
-  text-align: left;
-}
-
-.thumbnail {
-  height: 4rem;
-}
-
-.thumbnailBottomWrapper {
-  grid-column-start: 1;
-  grid-column-end: 3;
-  grid-row-start: 2;
-  grid-row-end: 3;
-  margin: auto 0.25rem;
-}
-
-.thumbnail-sidePanel {
-  grid-column-start: 2;
-  grid-column-end: 3;
-  grid-row-start: 1;
-  grid-row-end: 2;
-}
-
-.thumbnail-sidePanel .cogIconWrapper {
-  height: 1rem;
-  width: 1rem;
-  /* vertical-align: sub; */
-}
-
-.thumbnail-sidePanel .cogIconWrapper #cog {
-  fill: #84a1a1;
-}
-
-/* .thumbnailBottomWrapper .cogIconWrapper {
-  height: 1rem;
-  width: 1rem;
-  display: inline-block;
-  vertical-align: sub;
-}
-
-.thumbnailBottomWrapper .cogIconWrapper #cog {
-  fill: #84a1a1;
-} */
-/* .thumbnailDesc {
-  margin: auto 0.25rem;
-} */
-
-div.homeIcon {
-  height: 0.8rem;
-  width: 0.9rem;
-  position: absolute;
-  left: 0;
-  top: 0;
-  background-color: #ccc;
-}
-
-.thumbnailDialog {
-  position: relative;
-  background-color: skyblue;
-  border-radius: 3px;
-  z-index: 1;
-  cursor: pointer;
-}
-
-/* ---- stat panel --------------------------- */
-#StatPanel #screenFilenameStat {
-  font-size: 1.2rem;
-}
-
-#StatPanel #linkStat {
-  display: none;
-  border: 1px dotted pink;
-  border-radius: 4px;
-}
-
-#StatPanel #linkStat p.header {
-  text-decoration: underline;
-  margin-bottom: 1rem;
-}
-
-#StatPanel #linkStat #linkTargetScreenStat {
-  color: #eee;
-  background-color: #333;
-  text-align: right;
-  padding-right: 0.35rem;
-}
+@import 'modules';
 
 /* ---- main image display -------------------- */
-/* #FileDisplay { */
-
 #fileDisplayImage {
   max-width: 100%;
   display: block;
   position: relative;
 }
 
-.srclinkbox {
-  position: absolute;
-  border: 4px solid blue;
-}
-
-.srclinkbox-selected {
-  border: 4px solid pink;
-}
-
-.srclinkbox-tm {
-  position: absolute;
-  border: 1px solid blue;
-}
-
-/* ---- ready reserve -------------------- */
-#templates {
-  display: none;
-}
-
-#svgIcons {
-  display: none;
-}
-
-/* ---- modifiers ------------------------ */
-.value-not-set {
+/* ---- states ------------------------ */
+.is-value-not-set {
   font-style: italic;
+}
+
+.is-open {
+  display: block;
+}
+
+.is-selectable-for-target {
+  border-top: 4px solid #9cd8d8;
+  border-bottom: 4px solid #9cd8d8;
+}
+
+/* ---- quick modifiers (used in content blocks)------------------------ */
+.float-left {
+  float: left;
+}
+.float-right {
+  float: right;
+}
+.clear-both {
+  clear: both;
+}
+
+.mr-10px {
+  margin-right: 10px;
+}
+
+.m10 {
+  margin: 10px;
 }

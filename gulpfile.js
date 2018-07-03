@@ -6,6 +6,8 @@ var concat = require('gulp-concat');
 var childProcess = require('child_process');
 
 var bundle = require('bundle-js');
+var replace = require('gulp-replace');
+var rename = require('gulp-rename');
 
 // var globalPkgDir = childProcess
 //   .execSync('npm root -g')
@@ -19,7 +21,7 @@ var bundle = require('bundle-js');
 
 console.log('process.cwd=' + process.cwd());
 
-gulp.task('default', ['pug', 'sass', 'js-copy', 'proj-watch']);
+gulp.task('default', ['pug', 'sass', 'js-copy', 'test-make', 'proj-watch']);
 
 gulp.task('pug', function() {
   gulp
@@ -69,10 +71,32 @@ gulp.task('js-copy', function() {
   //   .pipe(gulp.dest('./build/js'));
 });
 
+// take final index.html, and inject test code, and output in test directory
+gulp.task('test-make', function() {
+  var mochascript = `
+    <script src="../node_modules/mocha/mocha.js"></script>
+    <script src="../node_modules/chai/chai.js"></script>
+    <script src="../tests/test1.js"></script>
+    </body>
+  `;
+  var mochastyle = `<style>.l-gridwrap { display: none}</style></head>`;
+  var mochadiv = `<body><div id="mocha"></div>`;
+
+  gulp
+    .src('build/index.html')
+    .pipe(rename('testv1.html'))
+    .pipe(replace('</head>', mochastyle))
+    .pipe(replace('<body>', mochadiv))
+    .pipe(replace('</body>', mochascript))
+    .pipe(gulp.dest('build'));
+});
+
 gulp.task('proj-watch', function() {
   var pugwatch = gulp.watch('views/*.pug', ['pug']);
   var sasswatch = gulp.watch('styles/*.scss', ['sass']);
   var jswatch = gulp.watch('js/*.js', ['js-copy']);
+
+  var testwatch = gulp.watch('tests/test1.js', ['test-make']);
 
   pugwatch.on('change', function(event) {
     console.log('pugwatch event.type = ' + event.type);
@@ -84,6 +108,10 @@ gulp.task('proj-watch', function() {
   });
   jswatch.on('change', function(event) {
     console.log('jswatch event.type = ' + event.type);
+    console.log('File ' + event.path + ' was changed');
+  });
+
+  testwatch.on('change', function(event) {
     console.log('File ' + event.path + ' was changed');
   });
 });

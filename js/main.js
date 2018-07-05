@@ -8,7 +8,7 @@
 // require ./exporter.js
 
 var gModeList = {
-  OPEN_MENU: { value: 90, modal: false, cancelMode: closeMenu },
+  // OPEN_MENU: { value: 90, modal: false, cancelMode: closeMenu },
   OPEN_THUMBNAIL_MENU: {
     value: 80,
     modal: false,
@@ -22,21 +22,21 @@ var gModeList = {
 };
 
 var gEventList = {
-  FILES_LOAD: {
-    initialMode: gModeList.LOAD_SCREENFILES,
-    resultingMode: gModeList.DEFAULT,
-    handler: [handleFiles]
-  },
-  MENU_OPEN: {
-    initialMode: gModeList.OPEN_MENU,
-    resultingMode: gModeList.OPEN_MENU,
-    handler: [displayMenu]
-  },
-  MENU_CLOSE: {
-    initialMode: gModeList.OPEN_MENU,
-    resultingMode: gModeList.DEFAULT,
-    handler: [closeMenu]
-  },
+  // FILES_LOAD: {
+  //   initialMode: gModeList.LOAD_SCREENFILES,
+  //   resultingMode: gModeList.DEFAULT,
+  //   handler: [handleFiles]
+  // },
+  // MENU_OPEN: {
+  //   initialMode: gModeList.OPEN_MENU,
+  //   resultingMode: gModeList.OPEN_MENU,
+  //   handler: [displayMenu]
+  // },
+  // MENU_CLOSE: {
+  //   initialMode: gModeList.OPEN_MENU,
+  //   resultingMode: gModeList.DEFAULT,
+  //   handler: [closeMenu]
+  // },
   THUMBNAIL_MENU_OPEN: {
     initialMode: gModeList.OPEN_THUMBNAIL_MENU,
     resultingMode: gModeList.OPEN_THUMBNAIL_MENU,
@@ -111,23 +111,202 @@ function processEvent(ev, eventName) {
   ev.stopPropagation();
 }
 
-function cancelDialog() {}
-function displayMenu(ev) {
-  if (!this.classList.contains('menuEnabled')) {
-    // is menu closed, then open it up
-    this.classList.add('menuEnabled');
-    document.querySelector('#mainMenu').classList.add('is-open');
-  } else {
-    // else it is open, so close it
-    // processEvent.call(this, ev, 'MENU_CLOSE');
-    gCurrentState.abort = true;
-  }
-}
+// --- mediator --------------------------------
+var mediator = {
+  _currentState: { mode: gModeList.DEFAULT, context: null, abort: false },
+  _eventList: {},
+  _modeList: {
+    OPEN_MENU: { value: 90, modal: false }, //cancelMode: closeMenu },
+    OPEN_THUMBNAIL_MENU: {
+      value: 80,
+      modal: false
+      // cancelMode: closeThumbnailMenu
+    },
+    BUILDING_LINKBOX: { value: 50, modal: false }, //cancelMode: noOp },
+    SELECTING_LINKBOX: { value: 60, modal: false }, //cancelMode: unselectLinkbox },
+    OPEN_DIALOG_SETTINGS: { value: 100, modal: true }, //cancelMode: cancelDialog },
+    LOAD_SCREENFILES: { value: 100, modal: true }, //cancelMode: noOp },
+    DEFAULT: { value: 0, modal: false } //, cancelMode: noOp }
+  },
+  init: function() {
+    this._eventList = {
+      FILES_LOAD: {
+        initialMode: this._modeList.LOAD_SCREENFILES,
+        resultingMode: this._modeList.DEFAULT
+        // handler: [screenfileVC.handleFiles]
+      },
+      MENU_OPEN: {
+        initialMode: this._modeList.OPEN_MENU,
+        resultingMode: this._modeList.OPEN_MENU
+        // handler: [displayMenu]
+      },
+      MENU_CLOSE: {
+        initialMode: this._modeList.OPEN_MENU,
+        resultingMode: this._modeList.DEFAULT
+        // handler: [closeMenu]
+      },
+      DEFAULT_RESUME: {
+        initialMode: this._modeList.DEFAULT,
+        resultingMode: this._modeList.DEFAULT
+        // handler: [noOp]
+      }
+    };
+  },
+  attach: function(eventType, callback) {
+    this._eventList[eventType].handler = callback;
+  },
+  processEvent: function(ev, eventName, context) {
+    console.log('mediator processing: ' + eventName);
+    this._currentState.abort = false; // "semiglobal" - set to true in handler when aborting
+    console.log('   _currentState.mode.value=' + this._currentState.mode.value);
+    if (!context) {
+      context = this;
+    }
+    if (
+      this._eventList[eventName].initialMode.value >=
+      this._currentState.mode.value
+    ) {
+      // _currentState.mode = _eventList[eventName].initialMode;
+      // this._eventList[eventName].handler[0].call(context, ev);
+      this._eventList[eventName].handler.call(context, ev);
+      if (this._currentState.abort) {
+        this._eventList[eventName].initialMode.cancelMode.call(context, ev);
+        this._currentState.mode = this._modeList.DEFAULT;
+        this._currentState.context = null;
+      } else {
+        this._currentState.mode = this._eventList[eventName].resultingMode;
+        this._currentState.context = this;
+      }
+    } else if (!this._currentState.mode.modal) {
+      this._currentState.mode.cancelMode.call(this._currentState.context, ev);
+      this._currentState.mode = this._modeList.DEFAULT;
+      this._currentState.context = null;
+      //ev.preventDefault(); // why??
+    }
 
-function closeMenu(ev) {
-  this.classList.remove('menuEnabled');
-  document.querySelector('#mainMenu').classList.remove('is-open');
-}
+    ev.stopPropagation();
+  }
+};
+
+// --- end mediator -------------------------------------------
+mediator.init();
+
+// --- App VC -------------------------------------------------
+
+var AppVC = {
+  init: function() {
+    mediator.attach('FILES_LOAD', this.handleFiles);
+    mediator.attach('MENU_OPEN', this.displayMenu);
+    mediator.attach('MENU_CLOSE', this.closeMenu);
+
+    // load screenfiles - menu option.  click to trigger input type=file element
+    // to get file select dialog box
+    document
+      .getElementById('fileElemClicker')
+      .addEventListener('click', function(ev) {
+        document.getElementById('fileElem').click();
+      });
+
+    document
+      .getElementById('fileElem')
+      .addEventListener('change', function(ev) {
+        // processEvent.call(this, ev, 'FILES_LOAD');
+        mediator.processEvent(ev, 'FILES_LOAD', this);
+      });
+
+    document
+      .getElementsByClassName('barsButton')[0]
+      .addEventListener('click', function(ev) {
+        if (
+          mediator._currentState.mode.value ===
+          mediator._modeList['OPEN_MENU'].value
+        ) {
+          mediator.processEvent(ev, 'MENU_CLOSE', this);
+        } else {
+          mediator.processEvent(ev, 'MENU_OPEN', this);
+        }
+      });
+  },
+  handleFiles: function() {
+    // var fileList = this.files;
+    var fileList = Array.prototype.slice.call(this.files);
+
+    screenfileVC.setupThumbnailsPanel(fileList);
+
+    var waitingTitle = document.getElementById('waitingTitle');
+    waitingTitle.style.display = 'none';
+
+    // setupThumbnailsPanel();
+  },
+  setupFileDisplayPanel: function() {
+    var fileDisplayPanel = document.getElementById('FileDisplay');
+
+    // set image
+    var displayFile = document.getElementById('fileDisplayImage');
+    displayFile.src = gProto.screenFiles[gActiveScreenId].fileMeta.src; //this.src;
+    displayFile.onmousedown = function(ev) {
+      // prevent that dragging of img behavior
+      ev.preventDefault();
+    };
+
+    // remove all links being displayed from prior screen
+    var nodeList = document.querySelectorAll('#FileDisplay .srclinkbox');
+    nodeList.forEach(function(x) {
+      x.remove();
+    });
+
+    // add links of new screen
+    var links = gProto.getLinksForScreen(gActiveScreenId);
+    links.forEach(function(x) {
+      // add div of link box to filedisplaypanel
+      var bc = x.src;
+      var linkDiv = makeLinkBox(bc.boxId);
+      linkDiv = updateDivWithBoxCoords.call(displayFile, linkDiv, bc);
+      fileDisplayPanel.appendChild(linkDiv);
+    });
+
+    // update stat StatPanel
+    document.getElementById('screenFilenameStat').innerHTML = this.fmIdName;
+  },
+  displayMenu: function(ev) {
+    if (!this.classList.contains('menuEnabled')) {
+      // is menu closed, then open it up
+      this.classList.add('menuEnabled');
+      document.querySelector('#mainMenu').classList.add('is-open');
+    } else {
+      // else it is open, so close it
+      // processEvent.call(this, ev, 'MENU_CLOSE');
+      gCurrentState.abort = true;
+    }
+  },
+
+  closeMenu: function(ev) {
+    this.classList.remove('menuEnabled');
+    document.querySelector('#mainMenu').classList.remove('is-open');
+  }
+};
+
+// --- End App VC ---------------------------------------------
+AppVC.init();
+
+function cancelDialog() {}
+
+// function displayMenu(ev) {
+//   if (!this.classList.contains('menuEnabled')) {
+//     // is menu closed, then open it up
+//     this.classList.add('menuEnabled');
+//     document.querySelector('#mainMenu').classList.add('is-open');
+//   } else {
+//     // else it is open, so close it
+//     // processEvent.call(this, ev, 'MENU_CLOSE');
+//     gCurrentState.abort = true;
+//   }
+// }
+//
+// function closeMenu(ev) {
+//   this.classList.remove('menuEnabled');
+//   document.querySelector('#mainMenu').classList.remove('is-open');
+// }
 
 function OkDialog(title, msgNode) {
   var okButton = document.querySelector('#okModal button');
@@ -161,67 +340,67 @@ function OkDialog(title, msgNode) {
 
 function noOp() {} // mainly for atom styling bug ??
 
-// --------------- App VC --------------------------
+// --------------- old App VC --------------------------
 // setting up the big screen
-function setupFileDisplayPanel() {
-  var fileDisplayPanel = document.getElementById('FileDisplay');
-
-  // set image
-  var displayFile = document.getElementById('fileDisplayImage');
-  displayFile.src = gProto.screenFiles[gActiveScreenId].fileMeta.src; //this.src;
-  displayFile.onmousedown = function(ev) {
-    // prevent that dragging of img behavior
-    ev.preventDefault();
-  };
-
-  // remove all links being displayed from prior screen
-  var nodeList = document.querySelectorAll('#FileDisplay .srclinkbox');
-  nodeList.forEach(function(x) {
-    x.remove();
-  });
-
-  // add links of new screen
-  var links = gProto.getLinksForScreen(gActiveScreenId);
-  links.forEach(function(x) {
-    // add div of link box to filedisplaypanel
-    var bc = x.src;
-    var linkDiv = makeLinkBox(bc.boxId);
-    linkDiv = updateDivWithBoxCoords.call(displayFile, linkDiv, bc);
-    fileDisplayPanel.appendChild(linkDiv);
-  });
-
-  // update stat StatPanel
-  document.getElementById('screenFilenameStat').innerHTML = this.fmIdName;
-}
+// function setupFileDisplayPanel() {
+//   var fileDisplayPanel = document.getElementById('FileDisplay');
+//
+//   // set image
+//   var displayFile = document.getElementById('fileDisplayImage');
+//   displayFile.src = gProto.screenFiles[gActiveScreenId].fileMeta.src; //this.src;
+//   displayFile.onmousedown = function(ev) {
+//     // prevent that dragging of img behavior
+//     ev.preventDefault();
+//   };
+//
+//   // remove all links being displayed from prior screen
+//   var nodeList = document.querySelectorAll('#FileDisplay .srclinkbox');
+//   nodeList.forEach(function(x) {
+//     x.remove();
+//   });
+//
+//   // add links of new screen
+//   var links = gProto.getLinksForScreen(gActiveScreenId);
+//   links.forEach(function(x) {
+//     // add div of link box to filedisplaypanel
+//     var bc = x.src;
+//     var linkDiv = makeLinkBox(bc.boxId);
+//     linkDiv = updateDivWithBoxCoords.call(displayFile, linkDiv, bc);
+//     fileDisplayPanel.appendChild(linkDiv);
+//   });
+//
+//   // update stat StatPanel
+//   document.getElementById('screenFilenameStat').innerHTML = this.fmIdName;
+// }
 
 // essentially, start here.  Take user's selected files, and add them
 // to our list of screenFiles in gProto.  Then generate the thumbnails
 // from this list.
-function handleFiles() {
-  var fileList = this.files;
-  var files = Array.prototype.slice.call(fileList);
-
-  files.forEach(function(x) {
-    // TODO does x exist? - if so, overwrite or warn or something
-    var screenFileItem = {};
-    screenFileItem.fileMeta = x;
-    screenFileItem.fileMeta.idname = makeIdname(x.name);
-    gProto.screenFiles[screenFileItem.fileMeta.idname] = screenFileItem;
-    gProto.mappings.screen2links[screenFileItem.fileMeta.idname] = [];
-  });
-
-  setupThumbnailsPanel();
-}
+// function handleFiles() {
+//   var fileList = this.files;
+//   var files = Array.prototype.slice.call(fileList);
+//
+//   files.forEach(function(x) {
+//     // TODO does x exist? - if so, overwrite or warn or something
+//     var screenFileItem = {};
+//     screenFileItem.fileMeta = x;
+//     screenFileItem.fileMeta.idname = makeIdname(x.name);
+//     gProto.screenFiles[screenFileItem.fileMeta.idname] = screenFileItem;
+//     gProto.mappings.screen2links[screenFileItem.fileMeta.idname] = [];
+//   });
+//
+//   setupThumbnailsPanel();
+// }
 
 // ------- View - html/CSS + event listener logic to call mediator -------------
 // ------- event listeners attach ------------------------------------
 
 // menu
-document
-  .getElementsByClassName('barsButton')[0]
-  .addEventListener('click', function(ev) {
-    processEvent.call(this, ev, 'MENU_OPEN');
-  });
+// document
+//   .getElementsByClassName('barsButton')[0]
+//   .addEventListener('click', function(ev) {
+//     mediator.processEvent(ev, 'MENU_OPEN', this);
+//   });
 
 // delete
 // document
@@ -240,17 +419,18 @@ fileDisplay.addEventListener('mouseup', function(ev) {
   processEvent.call(this, ev, 'LINKBOX_COMPLETE');
 });
 
-// load screenfiles - menu option.  click to trigger input type=file element
-// to get file select dialog box
-document
-  .getElementById('fileElemClicker')
-  .addEventListener('click', function(ev) {
-    document.getElementById('fileElem').click();
-  });
-
-document.getElementById('fileElem').addEventListener('change', function(ev) {
-  processEvent.call(this, ev, 'FILES_LOAD');
-});
+// // load screenfiles - menu option.  click to trigger input type=file element
+// // to get file select dialog box
+// document
+//   .getElementById('fileElemClicker')
+//   .addEventListener('click', function(ev) {
+//     document.getElementById('fileElem').click();
+//   });
+//
+// document.getElementById('fileElem').addEventListener('change', function(ev) {
+//   // processEvent.call(this, ev, 'FILES_LOAD');
+//   mediator.processEvent(ev, 'FILES_LOAD', this);
+// });
 
 // menu function - probably extract and put with appVC
 document

@@ -32,12 +32,6 @@ function findDomNodeByClass(domNode, className) {
       return childNodes[i];
     }
   }
-
-  // check descendants
-  // for (var i = 0; i < childNodes.length; i++) {
-  //   return;
-  // }
-  // return null;
 }
 
 function hasChildWithClass(domNode, className) {
@@ -50,4 +44,9 @@ function hasChildWithClass(domNode, className) {
     if (childNodes[i].classList.contains(className)) return true;
   }
   return false;
+}
+
+function debugLog(logType, msg) {
+  if (gProto.internalSettings.debugLogMode.indexOf(logType) !== -1)
+    console.log(msg);
 }

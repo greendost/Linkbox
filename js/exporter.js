@@ -29,7 +29,8 @@ function buildLinkHandler(areaId, srcScreenId, targetScreenId) {
 }
 
 function buildOutputHTML() {
-  var titleHTML = '<title>' + gProto.settings.downloadTitle + '</title>' + '\n';
+  var titleHTML =
+    '<title>' + gProto.exportSettings.downloadTitle + '</title>' + '\n';
   var styleSection =
     '<style>' +
     '\n' +
@@ -46,11 +47,13 @@ function buildOutputHTML() {
 
   var divSection = '';
   var scriptCode = '';
-  var preScript = `var gCurrentScreen = '${gProto.settings.homeScreenFile}';`;
+  var preScript = `var gCurrentScreen = '${
+    gProto.exportSettings.homeScreenFile
+  }';`;
   scriptCode += preScript;
 
   var screenFiles = Object.keys(gProto.screenFiles);
-  for (i = 0; i < screenFiles.length; i++) {
+  for (var i = 0; i < screenFiles.length; i++) {
     var screenFileId = screenFiles[i];
     var screenFile = gProto.screenFiles[screenFileId];
     var mapName = screenFileId + '-map';
@@ -58,7 +61,7 @@ function buildOutputHTML() {
     var imgX = '<img';
     // <img srcset="dt-home.png, dt-home2x.png 2x" src="dt-home.png"
     // + 'dt-home.png, dt-home2x.png 2x'
-    // TODO if retinaImage i.e. using multiple sets of images, based on adding 2x file
+    // if retinaImage i.e. using multiple sets of images, based on adding 2x file
     var srcSetPath = screenFile.fileMeta.name;
     if (
       screenFileId[screenFileId.length - 1] === 'x' &&
@@ -115,7 +118,7 @@ function buildOutputHTML() {
     mapX += '</map>' + '\n';
 
     var initState =
-      screenFileId === gProto.settings.homeScreenFile
+      screenFileId === gProto.exportSettings.homeScreenFile
         ? ''
         : " class='init-state'";
     var divX =
@@ -134,7 +137,9 @@ function buildOutputHTML() {
   // additional code
   var postCode = `
     // initialize
-    history.replaceState({url: '${gProto.settings.homeScreenFile}'},'','');
+    history.replaceState({url: '${
+      gProto.exportSettings.homeScreenFile
+    }'},'','');
 
     window.addEventListener('popstate', function(ev) {
       console.log('popstate called');

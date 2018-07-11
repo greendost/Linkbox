@@ -5,3 +5,5 @@ update July 2018 - refactor, used bundle-js for "smarter" concatenation
 
 
 */
+
+'use strict';

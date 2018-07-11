@@ -6,13 +6,20 @@ var gProto = {
   mappings: {
     screen2links: {}
   },
-  settings: {
+  internalSettings: {
+    debugLogMode: ['INFO'],
     versionData: { version: '0.2', date: '7/1/18' },
+    appTitle: 'LinkBox'
+  },
+  runningSettings: {
+    selectedLinks: {}, // currently, 1 link selected at a time
+    activeScreenId: '' // currently selected screen file
+  },
+  exportSettings: {
     homeScreenFile: '',
     downloadFilename: 'proto1.html',
     downloadTitle: 'Prototype',
-    imgPath: '', // relative path to image folder
-    appTitle: 'LinkBox'
+    imgPath: '' // relative path to image folder
   },
   getLinksForScreen: function(screenId) {
     var linkNames = this.mappings.screen2links[screenId];
@@ -36,13 +43,8 @@ var gProto = {
     delete gProto.mappings.screen2links[screenId];
 
     // if it's the home screen
-    if (gProto.settings.homeScreenFile === screenId) {
-      gProto.settings.homeScreenFile = '';
+    if (gProto.exportSettings.homeScreenFile === screenId) {
+      gProto.exportSettings.homeScreenFile = '';
     }
   }
 };
-
-//TODO
-var gActiveScreenId; // currently selected screen file
-var divRectCandidate = {}; // linkbox being built
-var gSelectedLinks = {}; // currently, 1 link selected at a time

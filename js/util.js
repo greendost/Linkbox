@@ -47,6 +47,8 @@ function hasChildWithClass(domNode, className) {
 }
 
 function debugLog(logType, msg) {
-  if (gProto.internalSettings.debugLogMode.indexOf(logType) !== -1)
+  if ( (gProto.internalSettings.debugLogMode.indexOf(logType) !== -1) ||
+    (logType === 'ALL')
+  )
     console.log(msg);
 }

@@ -12,7 +12,7 @@ var AppVC = {
     // load screenfiles - menu option.  click to trigger input type=file element
     // to get file select dialog box
     document
-      .getElementById('fileElemClicker')
+      .getElementById('fileElemClickerLink')
       .addEventListener('click', function(ev) {
         mediator.processEvent(
           ev,
@@ -63,9 +63,17 @@ var AppVC = {
     document
       .getElementsByTagName('body')[0]
       .addEventListener('click', function(ev) {
-        debugLog('INFO', 'body clicked');
+        debugLog('INFO_BODY', 'body clicked');
         mediator.processEvent(ev, 'DEFAULT_RESUME', this);
       });
+    document
+    .getElementsByTagName('body')[0]
+    .addEventListener('mouseup', function(ev) {
+      debugLog('INFO_BODY', 'mouse up over body');
+      if(mediator.getCurrentMode() === mediator.getMode('BUILDING_LINKBOX')) {
+        mediator.processEvent(ev, 'LINKBOX_FAILTOCOMPLETE', document.getElementById('FileDisplayPanel'));
+      }
+    });
   },
   handleFiles: function() {
     // var fileList = this.files;

@@ -94,10 +94,13 @@ var screenfileVC = {
       var fr = new FileReader();
       fr.onload = (function(imgX) {
         return function(e) {
+          console.log('file reader - loading files');
           imgX.src = e.target.result;
           screenFile.fileMeta.src = e.target.result;
         };
       })(img);
+      console.log('before file reader');
+
       fr.readAsDataURL(screenFile.fileMeta);
     });
   },

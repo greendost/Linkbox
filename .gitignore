@@ -3,3 +3,5 @@
 build/
 playground/
 node_modules/
+coverage/
+.nyc_output

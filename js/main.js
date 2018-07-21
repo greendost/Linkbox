@@ -20,7 +20,7 @@ var mediator = {
       modal: false,
       cancelMode: screenfileVC.closeThumbnailMenu
     },
-    BUILDING_LINKBOX: { value: 50, modal: false, cancelMode: noOp },
+    BUILDING_LINKBOX: { value: 50, modal: false, cancelMode: linkboxVC.killRectangle },
     SELECTING_LINKBOX: {
       value: 60,
       modal: false,
@@ -61,6 +61,10 @@ var mediator = {
         resultingMode: this._modeList.BUILDING_LINKBOX
       },
       LINKBOX_COMPLETE: {
+        initialMode: this._modeList.BUILDING_LINKBOX,
+        resultingMode: this._modeList.DEFAULT
+      },
+      LINKBOX_FAILTOCOMPLETE: {
         initialMode: this._modeList.BUILDING_LINKBOX,
         resultingMode: this._modeList.DEFAULT
       },
@@ -114,7 +118,11 @@ var mediator = {
       this._currentState.mode.value
     ) {
       // _currentState.mode = _eventList[eventName].initialMode;
-      // this._currentState.mode.cancelMode.call(this._currentState.context, ev);
+      // e.g. big menu triggers cancel of thumbnail menu or selected linkbox
+      // later on, might consider a stack of currentState.
+      if(this._eventList[eventName].initialMode.value > this._currentState.mode.value) {
+        this._currentState.mode.cancelMode.call(this._currentState.context, ev);
+      }
       this._eventList[eventName].handler.call(context, ev);
       if (this._currentState.abort) {
         this._eventList[eventName].initialMode.cancelMode.call(context, ev);
@@ -127,6 +135,8 @@ var mediator = {
     }
     // any event, even if doesn't happen, can turn off a current mode unless we're in a modal dialog
     else if (!this._currentState.mode.modal) {
+      // another approach - instead of cancelMode function, there could be 
+      // cancelMode event, which would allow mode and context to be updated normally
       this._currentState.mode.cancelMode.call(this._currentState.context, ev);
       this._currentState.mode = this._modeList.DEFAULT;
       this._currentState.context = null;

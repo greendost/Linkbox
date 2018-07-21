@@ -6,7 +6,7 @@ function Linkbox(newId) {
   this.divRect.classList.add('srclinkbox');
 
   this.divRect.addEventListener('click', function(ev) {
-    debugLog('INFO', 'divRect clicked ' + this.id);
+    debugLog('INFO_RECTANGLE', 'divRect clicked ' + this.id);
 
     mediator.processEvent(ev, 'LINKBOX_SELECT', this);
   });
@@ -14,12 +14,12 @@ function Linkbox(newId) {
   // we are using click to initiate select.  However, click comes after onmouseup and onmousedown,
   // and we need to make sure those two don't propagate and trigger event handlers on the parent div.
   this.divRect.onmousedown = function(ev) {
-    debugLog('INFO', 'divRect - onmousedown');
+    debugLog('INFO_RECTANGLE', 'divRect - onmousedown');
 
     ev.stopPropagation();
   };
   this.divRect.onmouseup = function(ev) {
-    debugLog('INFO', 'divRect - onmouseup');
+    debugLog('INFO_RECTANGLE', 'divRect - onmouseup');
 
     // this will get fired when building the linkbox, so we should allow it
     // to propagate to that handler on the div - fileDisplayPanel -
@@ -34,11 +34,24 @@ var linkboxVC = {
   init: function() {
     mediator.attach('LINKBOX_START', this.startRectangle);
     mediator.attach('LINKBOX_COMPLETE', this.endRectangle);
+    // triggered in body mouseup
+    mediator.attach('LINKBOX_FAILTOCOMPLETE', this.killRectangle);
     mediator.attach('LINKBOX_SELECT', this.selectLinkbox);
     mediator.attach('LINKBOX_UNSELECT', this.unselectLinkbox);
     mediator.attach('LINKBOX_DELETE', this.deleteLinkbox);
     mediator.attach('LINKBOX_FORMLINK', this.addTargetToLinkbox);
 
+    // var fileDisplayImage = document.getElementById('fileDisplayImage');
+    // fileDisplayImage.addEventListener('mousemove', this.updateRectangle);
+    // fileDisplayImage.addEventListener('mousedown', function(ev) {
+    //   mediator.processEvent(ev, 'LINKBOX_START', this);
+    // });
+    // fileDisplayImage.addEventListener('mouseup', function(ev) {
+    //   mediator.processEvent(ev, 'LINKBOX_COMPLETE', this);
+    // });
+    // I tried setting the event listeners on the image, but the div (linkbox)
+    // being created - a sibling to the img - appears to intercept some of the 
+    // mousemove as well as the mouseup events.
     var fileDisplayPanel = document.getElementById('FileDisplayPanel');
     fileDisplayPanel.addEventListener('mousemove', this.updateRectangle);
     fileDisplayPanel.addEventListener('mousedown', function(ev) {
@@ -75,6 +88,7 @@ var linkboxVC = {
     // divRectCandidate.divRect = divRect;
     // document.getElementById('fileDisplayImage').appendChild(divRectCandidate.divRect);
 
+    // this.appendChild(drc.divRect);
     this.appendChild(drc.divRect);
     linkboxVC.divRectCandidate = drc;
   },
@@ -82,6 +96,7 @@ var linkboxVC = {
   updateRectangle: function(ev) {
     if (mediator.getCurrentMode() !== mediator.getMode('BUILDING_LINKBOX'))
       return;
+    
 
     var fileDisplayImage = document.getElementById('fileDisplayImage');
     var bc = computeBoxCoords(
@@ -94,7 +109,6 @@ var linkboxVC = {
 
     var divRect = linkboxVC.divRectCandidate.divRect;
 
-    // divRectCandidate.divRect = updateDivWithBoxCoords.call(this,divRect, bc);
     linkboxVC.divRectCandidate.divRect = updateDivWithBoxCoords.call(
       fileDisplayImage,
       divRect,
@@ -103,14 +117,16 @@ var linkboxVC = {
   },
 
   endRectangle: function(ev) {
+    debugLog('INFO_RECTANGLE', 'called end rectangle');
     if (mediator.getCurrentMode() !== mediator.getMode('BUILDING_LINKBOX')) {
-      mediator.abort();
+      // mediator.abort();
       return;
     }
 
     // var bc = computeBoxCoords.call(this,divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
     // var bc = computeBoxCoords.call(this.getBoundingClientRect(),divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
     var fileDisplayImage = document.getElementById('fileDisplayImage');
+    var borderWidth = 4;  // alternate idea is JSON config, piped to both SASS and JS
     var bc = computeBoxCoords(
       fileDisplayImage.getBoundingClientRect(),
       linkboxVC.divRectCandidate.startX,
@@ -121,6 +137,11 @@ var linkboxVC = {
 
     // ignore small boxes
     if (bc.height() < 5 || bc.width() < 5) {
+      mediator.abort();
+      return;
+    }
+
+    if( (Math.floor(bc.xFactor*bc.containerWidth) + bc.width()+2*borderWidth) > bc.containerWidth) {
       mediator.abort();
       return;
     }
@@ -170,6 +191,10 @@ var linkboxVC = {
     gProto.mappings.screen2links[
       gProto.screenFiles[gProto.runningSettings.activeScreenId].fileMeta.idname
     ].push(link.src.boxId);
+  },
+  killRectangle: function(ev) {
+    document.getElementById(linkboxVC.divRectCandidate.divRect.id).remove();
+    linkboxVC.divRectCandidate = {};
   },
 
   addTargetToLinkbox: function(ev) {

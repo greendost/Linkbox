@@ -1,4 +1,3 @@
-/* main.js  */
 
 // require ./commentary.js
 // require ./model.js
@@ -9,8 +8,14 @@
 // require ./exporter.js
 // require ./appvc.js
 
+/* main.js  */
 // --- mediator --------------------------------
-var mediator = {
+var mediator = (function() {
+  function noOp() {}
+
+  var _processingQ = [];
+
+  return {
   _currentState: {},
   _eventList: {},
   _modeList: {
@@ -97,7 +102,7 @@ var mediator = {
     this._currentState = {
       mode: this._modeList.DEFAULT,
       context: null,
-      abort: false
+      abort: false,
     };
   },
   attach: function(eventType, callback) {
@@ -105,14 +110,23 @@ var mediator = {
   },
   processEvent: function(ev, eventName, context) {
     debugLog('INFO', 'mediator processing: ' + eventName);
+
+    if(_processingQ.length) {
+      _processingQ[_processingQ.length-1].passThrough = true;
+    }
+    _processingQ.push({eventName: eventName, passThrough: false});
+
     this._currentState.abort = false; // "semiglobal" - set to true in handler when aborting
+    this._currentState.runningEvent = true; // "semiglobal" - set to true in handler when aborting
+
     debugLog(
       'INFO',
-      '   _currentState.mode.value=' + this._currentState.mode.value
+      '\t_currentState.mode.value=' + this._currentState.mode.value
     );
     if (!context) {
       context = this;
     }
+
     if (
       this._eventList[eventName].initialMode.value >=
       this._currentState.mode.value
@@ -123,17 +137,25 @@ var mediator = {
       if(this._eventList[eventName].initialMode.value > this._currentState.mode.value) {
         this._currentState.mode.cancelMode.call(this._currentState.context, ev);
       }
+
+      // make the call
       this._eventList[eventName].handler.call(context, ev);
+
+      // ok, let's handle whether action went through, or was aborted
       if (this._currentState.abort) {
         this._eventList[eventName].initialMode.cancelMode.call(context, ev);
         this._currentState.mode = this._modeList.DEFAULT;
         this._currentState.context = null;
       } else {
-        this._currentState.mode = this._eventList[eventName].resultingMode;
-        this._currentState.context = context;
+        // if event is not marked pass through, then update mode and context
+        if(!_processingQ[_processingQ.length-1].passThrough) {
+          this._currentState.mode = this._eventList[eventName].resultingMode;
+          this._currentState.context = context;
+        }
       }
     }
-    // any event, even if doesn't happen, can turn off a current mode unless we're in a modal dialog
+    // any event, even if it doesn't go through, can still turn off a current mode 
+    // unless we're in a modal dialog
     else if (!this._currentState.mode.modal) {
       // another approach - instead of cancelMode function, there could be 
       // cancelMode event, which would allow mode and context to be updated normally
@@ -142,6 +164,7 @@ var mediator = {
       this._currentState.context = null;
     }
 
+    _processingQ.pop();
     ev.stopPropagation();
   },
   abort: function() {
@@ -156,8 +179,10 @@ var mediator = {
   getMode: function(modeStr) {
     // no checks
     return this._modeList[modeStr];
+  },
+  noOp: noOp
   }
-};
+})();
 
 // --- end mediator -------------------------------------------
 
@@ -168,115 +193,6 @@ screenfileVC.init();
 statpanelVC.init();
 linkboxVC.init();
 
-// TODO - review if using modal event or mode
-// function cancelDialog() {}
-
-function noOp() {}
-
 // final things
 downloadLink.download = gProto.exportSettings.downloadFilename;
 
-// TODO delete
-// var gModeList = {
-// OPEN_MENU: { value: 90, modal: false, cancelMode: closeMenu },
-// OPEN_THUMBNAIL_MENU: {
-//   value: 80,
-//   modal: false,
-//   cancelMode: closeThumbnailMenu
-// },
-// BUILDING_LINKBOX: { value: 50, modal: false, cancelMode: noOp },
-// SELECTING_LINKBOX: { value: 60, modal: false, cancelMode: unselectLinkbox },
-// OPEN_DIALOG_SETTINGS: { value: 100, modal: true, cancelMode: cancelDialog }
-// LOAD_SCREENFILES: { value: 100, modal: true, cancelMode: noOp },
-// DEFAULT: { value: 0, modal: false, cancelMode: noOp }
-// };
-
-// var gEventList = {
-// FILES_LOAD: {
-//   initialMode: gModeList.LOAD_SCREENFILES,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [handleFiles]
-// },
-// MENU_OPEN: {
-//   initialMode: gModeList.OPEN_MENU,
-//   resultingMode: gModeList.OPEN_MENU,
-//   handler: [displayMenu]
-// },
-// MENU_CLOSE: {
-//   initialMode: gModeList.OPEN_MENU,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [closeMenu]
-// },
-// THUMBNAIL_MENU_OPEN: {
-//   initialMode: gModeList.OPEN_THUMBNAIL_MENU,
-//   resultingMode: gModeList.OPEN_THUMBNAIL_MENU,
-//   handler: [displayThumbnailMenu]
-// },
-// THUMBNAIL_MENU_CLOSE: {
-//   initialMode: gModeList.OPEN_THUMBNAIL_MENU,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [closeThumbnailMenu]
-// },
-// LINKBOX_START: {
-//   initialMode: gModeList.BUILDING_LINKBOX,
-//   resultingMode: gModeList.BUILDING_LINKBOX,
-//   handler: [startRectangle]
-// },
-// LINKBOX_COMPLETE: {
-//   initialMode: gModeList.BUILDING_LINKBOX,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [endRectangle]
-// },
-// LINKBOX_SELECT: {
-//   initialMode: gModeList.SELECTING_LINKBOX,
-//   resultingMode: gModeList.SELECTING_LINKBOX,
-//   handler: [selectLinkbox]
-// },
-// LINKBOX_UNSELECT: {
-//   initialMode: gModeList.SELECTING_LINKBOX,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [unselectLinkbox]
-// },
-// LINKBOX_FORMLINK: {
-//   initialMode: gModeList.SELECTING_LINKBOX,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [addTargetToLinkbox]
-// },
-// LINKBOX_DELETE: {
-//   initialMode: gModeList.SELECTING_LINKBOX,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [deleteLinkbox]
-// }
-// DEFAULT_RESUME: {
-//   initialMode: gModeList.DEFAULT,
-//   resultingMode: gModeList.DEFAULT,
-//   handler: [noOp]
-//}
-// };
-
-// var gCurrentState = { mode: gModeList.DEFAULT, context: null, abort: false };
-
-// function processEvent(ev, eventName) {
-//   console.log('processing: ' + eventName);
-//   gCurrentState.abort = false; // "semiglobal" - set to true in handler when aborting
-//   console.log('   gCurrentState.mode.value=' + gCurrentState.mode.value);
-//   if (gEventList[eventName].initialMode.value >= gCurrentState.mode.value) {
-//     // gCurrentState.mode = gEventList[eventName].initialMode;
-//     gEventList[eventName].handler[0].call(this, ev);
-//     if (gCurrentState.abort) {
-//       gEventList[eventName].initialMode.cancelMode.call(this, ev);
-//       gCurrentState.mode = gModeList.DEFAULT;
-//       gCurrentState.context = null;
-//     } else {
-//       gCurrentState.mode = gEventList[eventName].resultingMode;
-//       gCurrentState.context = this;
-//     }
-//   } else if (!gCurrentState.mode.modal) {
-//     gCurrentState.mode.cancelMode.call(gCurrentState.context, ev);
-//     gCurrentState.mode = gModeList.DEFAULT;
-//     gCurrentState.context = null;
-//     //ev.preventDefault(); // why??
-//   }
-//
-//   ev.stopPropagation();
-// }

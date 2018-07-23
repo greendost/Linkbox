@@ -7,7 +7,7 @@ var gProto = {
     screen2links: {}
   },
   internalSettings: {
-    debugLogMode: ['INFO'],
+    debugLogMode: [],
     versionData: { version: '0.2', date: '7/1/18' },
     appTitle: 'LinkBox'
   },

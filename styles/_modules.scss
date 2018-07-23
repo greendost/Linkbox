@@ -133,7 +133,7 @@ $modalBehindColor: rgba(0, 0, 0, 0.65);
 
 .modal__section {
   border: 1px solid $containerBGColor;
-  margin-bottom: 1rem;
+  margin-bottom: 1.5rem;
 }
 
 .modal__sectionTitle {
@@ -178,7 +178,7 @@ $modalBehindColor: rgba(0, 0, 0, 0.65);
   cursor: pointer;
 }
 
-/* essentially, I view this as the button */
+/* essentially, I view this svg as a button */
 .barsButton {
   float: left;
   margin-left: 0.5rem;
@@ -194,9 +194,24 @@ $modalBehindColor: rgba(0, 0, 0, 0.65);
   user-select: none;
 }
 
+.button {
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.5rem;
+  color: $dark-gray;
+  background-color: #eee;
+  margin: 0 5px;
+}
+.button:active {
+  background-color: darken($color: #eee, $amount: 20%);
+}
 .button--block {
   width: 100%;
   font-size: 1.2rem;
+  margin: 0;
+}
+.button--small {
+  font-size: 0.75rem;
 }
 
 /* --- header ------------------------- */
@@ -237,7 +252,7 @@ $modalBehindColor: rgba(0, 0, 0, 0.65);
   padding-right: 0.35rem;
 }
 
-
-#fileDisplayImage {
-  border: 1px solid black;
+.miniStat__centerWrap {
+  text-align: center;
+  margin: 1rem auto;
 }

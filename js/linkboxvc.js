@@ -41,14 +41,6 @@ var linkboxVC = {
     mediator.attach('LINKBOX_DELETE', this.deleteLinkbox);
     mediator.attach('LINKBOX_FORMLINK', this.addTargetToLinkbox);
 
-    // var fileDisplayImage = document.getElementById('fileDisplayImage');
-    // fileDisplayImage.addEventListener('mousemove', this.updateRectangle);
-    // fileDisplayImage.addEventListener('mousedown', function(ev) {
-    //   mediator.processEvent(ev, 'LINKBOX_START', this);
-    // });
-    // fileDisplayImage.addEventListener('mouseup', function(ev) {
-    //   mediator.processEvent(ev, 'LINKBOX_COMPLETE', this);
-    // });
     // I tried setting the event listeners on the image, but the div (linkbox)
     // being created - a sibling to the img - appears to intercept some of the 
     // mousemove as well as the mouseup events.
@@ -85,10 +77,7 @@ var linkboxVC = {
 
     drc.startX = ev.clientX - rect.left;
     drc.startY = ev.clientY - rect.top;
-    // divRectCandidate.divRect = divRect;
-    // document.getElementById('fileDisplayImage').appendChild(divRectCandidate.divRect);
 
-    // this.appendChild(drc.divRect);
     this.appendChild(drc.divRect);
     linkboxVC.divRectCandidate = drc;
   },
@@ -97,7 +86,6 @@ var linkboxVC = {
     if (mediator.getCurrentMode() !== mediator.getMode('BUILDING_LINKBOX'))
       return;
     
-
     var fileDisplayImage = document.getElementById('fileDisplayImage');
     var bc = computeBoxCoords(
       fileDisplayImage.getBoundingClientRect(),
@@ -119,12 +107,9 @@ var linkboxVC = {
   endRectangle: function(ev) {
     debugLog('INFO_RECTANGLE', 'called end rectangle');
     if (mediator.getCurrentMode() !== mediator.getMode('BUILDING_LINKBOX')) {
-      // mediator.abort();
       return;
     }
 
-    // var bc = computeBoxCoords.call(this,divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
-    // var bc = computeBoxCoords.call(this.getBoundingClientRect(),divRectCandidate.startX, divRectCandidate.startY, ev.clientX, ev.clientY);
     var fileDisplayImage = document.getElementById('fileDisplayImage');
     var borderWidth = 4;  // alternate idea is JSON config, piped to both SASS and JS
     var bc = computeBoxCoords(
@@ -193,7 +178,10 @@ var linkboxVC = {
     ].push(link.src.boxId);
   },
   killRectangle: function(ev) {
-    document.getElementById(linkboxVC.divRectCandidate.divRect.id).remove();
+    // if we have screenfile loaded, and user was in process of making a linkbox
+    if(linkboxVC.divRectCandidate.divRect) {
+      document.getElementById(linkboxVC.divRectCandidate.divRect.id).remove();
+    }
     linkboxVC.divRectCandidate = {};
   },
 
@@ -207,8 +195,6 @@ var linkboxVC = {
     });
 
     // now unselect links
-    // processEvent.call(gCurrentState.context, ev, 'LINKBOX_UNSELECT');
-    // TODO what if you clicked a menu while linkbox is selected?
     mediator.processEvent(ev, 'LINKBOX_UNSELECT', mediator.getCurrentContext());
   },
 
@@ -282,6 +268,11 @@ var linkboxVC = {
       delete gProto.links[x];
     });
     gProto.runningSettings.selectedLinks = {};
+    
+    // update view
+    document
+      .getElementById('ScreenThumbnailsPanel')
+      .classList.remove('is-selectable-for-target');
     document.getElementById('linkStat').style.display = 'none';
   }
 };

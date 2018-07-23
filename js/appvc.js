@@ -7,7 +7,7 @@ var AppVC = {
     mediator.attach('MENU_CLOSE', this.closeMenu);
     mediator.attach('MENU_ITEM_CLICK', this.handleMenuItemClick);
     mediator.attach('SETUP_BIG_SCREEN', this.setupFileDisplayPanel);
-    mediator.attach('DEFAULT_RESUME', noOp);
+    mediator.attach('DEFAULT_RESUME', mediator.noOp);
 
     // load screenfiles - menu option.  click to trigger input type=file element
     // to get file select dialog box
@@ -23,23 +23,18 @@ var AppVC = {
       });
 
     document.getElementById('fileElem').addEventListener('click', function(ev) {
-      // processEvent.call(this, ev, 'FILES_LOAD');
       ev.stopPropagation();
     });
     document
       .getElementById('fileElem')
-      .addEventListener('change', function(ev) {
-        // processEvent.call(this, ev, 'FILES_LOAD');
+      .addEventListener('change', function(ev) {  
         mediator.processEvent(ev, 'FILES_LOAD', this);
       });
 
     document
       .getElementsByClassName('barsButton')[0]
       .addEventListener('click', function(ev) {
-        if (
-          mediator._currentState.mode.value ===
-          mediator._modeList['OPEN_MENU'].value
-        ) {
+        if (mediator.getCurrentMode() === mediator.getMode('OPEN_MENU')) {
           mediator.processEvent(ev, 'MENU_CLOSE', this);
         } else {
           mediator.processEvent(ev, 'MENU_OPEN', this);
@@ -76,9 +71,7 @@ var AppVC = {
     });
   },
   handleFiles: function() {
-    // var fileList = this.files;
     var fileList = Array.prototype.slice.call(this.files);
-
     screenfileVC.setupThumbnailsPanel(fileList);
 
     var waitingTitle = document.getElementById('waitingTitle');
@@ -92,7 +85,7 @@ var AppVC = {
     var fileDisplayPanel = document.getElementById('FileDisplayPanel');
     var displayFile = document.getElementById('fileDisplayImage');
     displayFile.src =
-      gProto.screenFiles[gProto.runningSettings.activeScreenId].fileMeta.src; //this.src;
+      gProto.screenFiles[gProto.runningSettings.activeScreenId].fileMeta.src;
     displayFile.onmousedown = function(ev) {
       // prevent that dragging of img behavior
       ev.preventDefault();
@@ -115,7 +108,6 @@ var AppVC = {
     });
 
     // update stat StatPanel
-    // document.getElementById('screenFilenameStat').innerHTML = this.fmIdName;
     document.getElementById('screenFilenameStat').innerHTML =
       gProto.runningSettings.activeScreenId;
   },
@@ -227,7 +219,7 @@ function downloadFileHandler(ev) {
     var msgNode = document.createElement('div');
     var paraNode = document.createElement('p');
     paraNode.innerHTML =
-      'We need the home screen set; this option is available on the thumbnail menu';
+      'We need the home screen set. This option is available on the thumbnail menu next to each screen.';
     msgNode.appendChild(paraNode);
     OkDialog('Please review', msgNode);
     ev.preventDefault();

@@ -22,7 +22,8 @@ html
           h1.miniStat__header Selected Link
           p Target screen
           p#linkTargetScreenStat.miniStat__field.value-not-set not set
-          button.remove-link Remove
+          .miniStat__centerWrap
+            button.button.button--small.remove-link Remove
       #FileDisplayPanel.l-mainPanel
         p#waitingTitle.m10 Please load some png screenshots via the menu
         img#fileDisplayImage
@@ -87,14 +88,14 @@ html
             br
             input#web-page-title(type="text")
           .modal__centerwrap
-            button.save Save
-            button.cancel Cancel
+            button.button.save Save
+            button.button.cancel Cancel
         
         #okModal.modal
           .modal__title
             h1.header Title
           .modal__content
           .modal__centerwrap
-            button.button--block Ok
+            button.button.button--block Ok
         
     script(src='js/bundle.js')

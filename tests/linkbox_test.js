@@ -56,10 +56,12 @@ const setTimeoutPromise = util.promisify(setTimeout);
 // --- tests -----------------------------------
 describe('testing linkbox methods', function() {
   var htmlFile, jsFile;
+  var dom, document, window;
+
   var actionTimeout = 400;  // settimeout default to wait for a dom event
   var longActionTimeout = 1000;  // wait a little longer
   var maxTimePerTestCase = 500000;  // 5 sec max per test case, set higher when debugging
-  var document, window;
+  
   var suiteData = {};
 
   this.timeout(maxTimePerTestCase);
@@ -106,7 +108,7 @@ describe('testing linkbox methods', function() {
     // dom = JSON.parse(JSON.stringify(baseDom));  // does not work
     // dom = _.cloneDeep(baseDom);                 // does not work
     // dom = Object.create(baseDom);               // does not work
-    var dom = new JSDOM(htmlFile, suiteData.jsdomOpts);
+    dom = new JSDOM(htmlFile, suiteData.jsdomOpts);
     dom.runVMScript(new Script(jsFile)); 
 
     document = dom.window.document;
@@ -315,7 +317,6 @@ describe('testing linkbox methods', function() {
         await setTimeoutPromise(actionTimeout);
         
         document.getElementsByClassName('thumbnail__main')[0].click();
-        document.getElementsByClassName('thumbnail__main')[0].click();
         await setTimeoutPromise(actionTimeout);
         
         var fileDisplayImage = document.getElementById('fileDisplayImage');
@@ -463,6 +464,91 @@ describe('testing linkbox methods', function() {
       }
 
     })();
+  });
+
+  it('test delete linkbox', function(done) {  
+    var startX = 100, startY = 100, moveX = 80; moveY = 20;
+
+    (async function() {
+      try {
+        var input = document.getElementById('fileElem');
+        var list1 = createFileList(window,[suiteData.defaultScreenLoaded], [suiteData.defaultImgData]);
+        Object.defineProperty(input, 'files', {
+          value: list1,
+          writeable: false
+        });
+        window.mediator.processEvent(document.createEvent('Event'), 'FILES_LOAD', input);
+        await setTimeoutPromise(actionTimeout);
+        
+        document.getElementsByClassName('thumbnail__main')[0].click();
+        await setTimeoutPromise(actionTimeout);
+        
+        var fileDisplayImage = document.getElementById('fileDisplayImage');
+        var fileDisplayPanel = document.getElementById('FileDisplayPanel');
+        var rect = fileDisplayImage.getBoundingClientRect();
+
+        var ev = document.createEvent('Event');
+        ev.clientX = rect.left + startX;
+        ev.clientY = rect.top + startY;
+
+        window.mediator.processEvent(ev,'LINKBOX_START', 
+          fileDisplayPanel);
+
+        // finish up rectangle  
+        ev.clientX = rect.left + startX+ moveX; ev.clientY= rect.top + startY+moveY;
+        window.mediator.processEvent(ev,'LINKBOX_COMPLETE', 
+          fileDisplayPanel);
+
+        // first select
+        var linkbox = document.getElementsByClassName('srclinkbox')[0];
+        linkbox.click();
+        await setTimeoutPromise(actionTimeout);
+
+        // now delete linkbox
+        var linkId = window.gProto.runningSettings.selectedLinks[0];
+        ev = document.createEvent('Event');
+        window.linkboxVC.deleteLinkbox(ev);
+        
+        expect(
+          document.getElementsByClassName('srclinkbox')
+        ).to.have.lengthOf(0);
+        expect(window.gProto.runningSettings.selectedLinks).to.be.an('object').that.is.empty;
+        expect(window.gProto.links).to.be.an('object').that.is.empty;
+        
+        done();
+      } catch(e) {
+        done(e);
+      }
+
+    })();
+  });
+
+  // perhaps rerun dom script in before each
+  it('test click in file display panel when nothing loaded', function(done) {
+    dom = new JSDOM(htmlFile, suiteData.jsdomOpts);
+    dom.runVMScript(new Script(jsFile)); 
+    document = dom.window.document;
+    window = dom.window;
+
+    (async function() {
+      try {
+        var fileDisplayPanel = document.getElementById('FileDisplayPanel');
+        var fileDisplayImage = document.getElementById('fileDisplayImage');
+
+        expect(fileDisplayImage.src).to.equal('');
+        // fileDisplayPanel.click(); 
+        fileDisplayPanel.dispatchEvent(new window.Event('mousedown'))
+        await setTimeoutPromise(actionTimeout);
+        fileDisplayPanel.dispatchEvent(new window.Event('mouseup'))
+        await setTimeoutPromise(actionTimeout);
+        // well, not really expecting anything other than no errors
+        expect(fileDisplayImage.src).to.equal('');
+        done();
+      } catch(e) {
+        done(e);
+      }
+    })();
+
   });
 
 });

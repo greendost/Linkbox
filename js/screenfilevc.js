@@ -27,12 +27,12 @@ var screenfileVC = {
       var screenFile = gProto.screenFiles[x];
 
       var thumbnail = thumbnailTemplate.cloneNode(true);
-      var imgDiv = findDomNodeByClass(thumbnail, 'thumbnail__main');
+      var imgDiv = thumbnail.getElementsByClassName('thumbnail__main')[0];
       var img = imgDiv.getElementsByTagName('img')[0];
-      var tbw = findDomNodeByClass(thumbnail, 'thumbnail__bottomWrap');
-      var imgDesc = findDomNodeByClass(tbw, 'thumbnailDesc');
-      var tsp = findDomNodeByClass(thumbnail, 'thumbnail__sidePanel');
-      var cog = findDomNodeByClass(tsp, 'cogButton');
+      var tbw = thumbnail.getElementsByClassName('thumbnail__bottomWrap')[0];
+      var imgDesc = tbw.getElementsByClassName('thumbnailDesc')[0];
+      var tsp = thumbnail.getElementsByClassName('thumbnail__sidePanel')[0];
+      var cog = tsp.getElementsByClassName('cogButton')[0];
 
       // thumbnail menu
       cog.addEventListener('click', function(ev) {
@@ -55,10 +55,6 @@ var screenfileVC = {
         }
       });
 
-      // img.addEventListener('dblclick', function() {
-      //   setHome(this.parentNode.parentNode);
-      // });
-
       imgDesc.innerHTML = screenFile.fileMeta.name;
 
       // append thumbnail link boxes to imgDiv too
@@ -78,11 +74,12 @@ var screenfileVC = {
         links.forEach(function(y) {
           var bc = y.src;
           // does this refer to img here ??
-          var tmDiv = updateDivWithBoxCoords.call(
-            this,
-            document.createElement('div'),
-            bc
-          );
+          // var tmDiv = updateDivWithBoxCoords.call(
+          //   this,
+          //   document.createElement('div'),
+          //   bc
+          // );
+          var tmDiv = updateDivWithBoxCoords(document.createElement('div'),bc);
           tmDiv.classList.add('srclinkbox--tm');
           imgDiv.appendChild(tmDiv);
         });
@@ -94,12 +91,12 @@ var screenfileVC = {
       var fr = new FileReader();
       fr.onload = (function(imgX) {
         return function(e) {
-          console.log('file reader - loading files');
+          debugLog('INFO','file reader - loading files');
           imgX.src = e.target.result;
           screenFile.fileMeta.src = e.target.result;
         };
       })(img);
-      console.log('before file reader');
+      debugLog('INFO','before file reader');
 
       fr.readAsDataURL(screenFile.fileMeta);
     });
@@ -120,11 +117,12 @@ var screenfileVC = {
 
       var homeLink = dialog.getElementsByClassName('setAsHomeLink')[0];
       homeLink.addEventListener('click', function(ev) {
+        debugLog('INFO','homelink clicked');
         screenfileVC.setHome(thumbnail); // set to the thumbnail item div container
       });
-      var deleteLink = findDomNodeByClass(dialog, 'deleteScreenFileLink');
+      var deleteLink = dialog.getElementsByClassName('deleteScreenFileLink')[0];
       deleteLink.addEventListener('click', function(ev) {
-        var thumbnailMain = findDomNodeByClass(thumbnail, 'thumbnail__main');
+        var thumbnailMain = thumbnail.getElementsByClassName('thumbnail__main')[0];
         var img = thumbnailMain.getElementsByTagName('img')[0];
 
         gProto.removeScreenFile(img.fmIdName);

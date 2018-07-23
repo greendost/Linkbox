@@ -9,22 +9,6 @@ function buildLinkHandler(areaId, srcScreenId, targetScreenId) {
         gCurrentScreen = '${targetScreenId}';
       });`;
 
-  // var result =
-  //   "document.getElementById('" + areaId + "').addEventListener('click',";
-  // result += 'function(ev) { ';
-  // result += 'ev.preventDefault();' + '\n';
-  // result +=
-  //   "document.getElementById('" +
-  //   srcScreenId +
-  //   "').style.display = 'none';" +
-  //   '\n';
-  // result +=
-  //   "document.getElementById('" +
-  //   targetScreenId +
-  //   "').style.display = 'block';" +
-  //   '\n';
-  // result += '});';
-  // result += '\n';
   return result;
 }
 
@@ -151,7 +135,6 @@ function buildOutputHTML() {
   `;
   scriptCode += postCode;
 
-  //- var divSection = "<h1>Downloaded</h1>"+ "\n";
   var scriptSection =
     '<' + 'script' + '> ' + scriptCode + '</' + 'script' + '>' + '\n';
   var bodySection =
@@ -166,6 +149,5 @@ function buildOutputHTML() {
     '</html>';
 
   var testData = 'data:' + ',' + encodeURIComponent(testHtmlString);
-  // downloadLink.href = testData;
   return testData;
 }

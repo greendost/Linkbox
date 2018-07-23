@@ -18,34 +18,6 @@ function setStyleOnDomObject(domObject, propertyObject) {
     domObject.style[property] = propertyObject[property];
 }
 
-function findDomNodeByClass(domNode, className) {
-  // function findDescNodeByClass(domNode, className) {
-  var childNodes = Array.prototype.slice
-    .call(domNode.childNodes)
-    .filter(function(x) {
-      return x.nodeName !== '#text';
-    });
-
-  // check direct kids
-  for (var i = 0; i < childNodes.length; i++) {
-    if (childNodes[i].classList.contains(className)) {
-      return childNodes[i];
-    }
-  }
-}
-
-function hasChildWithClass(domNode, className) {
-  var childNodes = Array.prototype.slice
-    .call(domNode.childNodes)
-    .filter(function(x) {
-      return x.nodeName !== '#text';
-    });
-  for (var i = 0; i < childNodes.length; i++) {
-    if (childNodes[i].classList.contains(className)) return true;
-  }
-  return false;
-}
-
 function debugLog(logType, msg) {
   if ( (gProto.internalSettings.debugLogMode.indexOf(logType) !== -1) ||
     (logType === 'ALL')

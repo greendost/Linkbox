@@ -126,7 +126,6 @@ function buildOutputHTML() {
     }'},'','');
 
     window.addEventListener('popstate', function(ev) {
-      console.log('popstate called');
       var srcDivPage = ev.state.url;
       document.getElementById(srcDivPage).style.display = 'block';
       document.getElementById(gCurrentScreen).style.display = 'none';

@@ -8,7 +8,7 @@ var gProto = {
   },
   internalSettings: {
     debugLogMode: [],
-    versionData: { version: '0.2', date: '7/1/18' },
+    versionData: { version: '0.3', date: '7/22/18' },
     appTitle: 'LinkBox'
   },
   runningSettings: {

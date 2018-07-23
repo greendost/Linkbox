@@ -230,6 +230,26 @@ $modalBehindColor: rgba(0, 0, 0, 0.65);
   margin-bottom: 1rem;
 }
 
+/* ---- input fields ------------------------- */
+.inputLabel {
+  margin-bottom: 0.5rem;
+}
+
+.inputLabel__input {
+  display: block;
+}
+
+.inputLabel__label {
+  display: block;
+  font-size: $small-font-size;
+}
+
+
+/* ---- sections ------------------------- */
+.appendix {
+  font-size: $small-font-size;
+}
+
 /* ---- linkStat --------------------------- */
 .miniStat {
   display: none;

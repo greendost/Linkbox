@@ -27,8 +27,11 @@ var AppVC = {
     });
     document
       .getElementById('fileElem')
-      .addEventListener('change', function(ev) {  
+      .addEventListener('change', function(ev) {
         mediator.processEvent(ev, 'FILES_LOAD', this);
+        // for browsers like Chrome that really do check for change in files selected,
+        // this will allow us to re-select same file(s) to upload.
+        this.value = ''; 
       });
 
     document

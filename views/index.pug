@@ -60,9 +60,9 @@ html
               Once all links have been setup, you can then download an html file into the
               directory with your images, and run it locally in the browser.  In addition,
               you can upload the html file to your server and have others try out your prototype.
-            p.
-              #[h1.header--normalWeight Special thanks:]
-              SVG icons: Font Awesome Free 5.0.2 by @fontawesome - http://fontawesome.com
+            .appendix
+              h1.header--normalWeight Special thanks:
+              p SVG icons: Font Awesome Free 5.0.2 by @fontawesome - http://fontawesome.com
         
         svg(xmlns="http://www.w3.org/2000/svg")
           symbol(id="svg-icon-home" viewBox="0 0 576 512")
@@ -80,13 +80,12 @@ html
           .modal__section 
             .modal__sectionTitle
               p HTML download file
-            label web page filename
-            br
-            input#web-page-filename(type="text")
-            br
-            label web page title
-            br
-            input#web-page-title(type="text")
+            .inputLabel
+              label.inputLabel__label web page filename
+              input.inputLabel__input#web-page-filename(type="text")
+            .inputLabel
+              label.inputLabel__label web page title
+              input.inputLabel__input#web-page-title(type="text")
           .modal__centerwrap
             button.button.save Save
             button.button.cancel Cancel

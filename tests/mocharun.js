@@ -1,3 +1,4 @@
+// for debugging test code in VS Code with mocha config (launch.json)
 const childProcess = require('child_process');
 // var ls = childProcess.execSync('ls', { stdio: [0, 1, 2] });
 var globalPkgDir = childProcess

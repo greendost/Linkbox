@@ -73,16 +73,15 @@ var screenfileVC = {
         var links = gProto.getLinksForScreen(screenFile.fileMeta.idname);
         links.forEach(function(y) {
           var bc = y.src;
-          // does this refer to img here ??
-          // var tmDiv = updateDivWithBoxCoords.call(
-          //   this,
-          //   document.createElement('div'),
-          //   bc
-          // );
-          var tmDiv = updateDivWithBoxCoords(document.createElement('div'),bc);
+          var tmDiv = updateDivWithBoxCoords.call(
+            this,
+            document.createElement('div'),
+            bc
+          );
+          // var tmDiv = updateDivWithBoxCoords(document.createElement('div'),bc);
           tmDiv.classList.add('srclinkbox--tm');
           imgDiv.appendChild(tmDiv);
-        });
+        },this);
       };
 
       screenThumbnailsPanel.appendChild(thumbnail);

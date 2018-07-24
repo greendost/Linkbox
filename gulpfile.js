@@ -14,7 +14,7 @@ console.log('process.cwd=' + process.cwd());
 gulp.task('default', ['pug', 'sass', 'js-copy', 'proj-watch']);
 
 gulp.task('pug', function() {
-  gulp
+   return gulp
     .src('views/*.pug')
     .pipe(
       plumber({ errorHandler: notify.onError('Error: <%= error.message %>') })
@@ -27,7 +27,8 @@ gulp.task('pug', function() {
         pretty: true
       })
     )
-    .pipe(gulp.dest('build'));
+    .pipe(gulp.dest('build'))
+    .pipe(gulp.dest('docs'));
 });
 
 gulp.task('sass', function() {
@@ -37,8 +38,8 @@ gulp.task('sass', function() {
       if (err !== null) {
         console.log('err: ' + err);
       }
-      // console.log('stdout: ' + stdout);
-      // console.log('stderr: ' + stderr);
+      
+      gulp.src('build/styles/style.css').pipe(gulp.dest('docs/styles'))
       return 0;
     }
   );
@@ -51,9 +52,11 @@ gulp.task('js-copy', function() {
     print: false,
     disablebeautify: true
   });
+  gulp.src('build/js/bundle.js').pipe(gulp.dest('docs/js'));
 });
 
-gulp.task('proj-watch', function() {
+
+gulp.task('proj-watch',function() {
   var pugwatch = gulp.watch('views/*.pug', ['pug']);
   var sasswatch = gulp.watch('styles/*.scss', ['sass']);
   var jswatch = gulp.watch('js/*.js', ['js-copy']);

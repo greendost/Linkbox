@@ -1,0 +1,375 @@
+* {
+  padding: 0;
+  margin: 0;
+}
+
+img {
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.no-display-wrap {
+  display: none;
+}
+
+html,
+body {
+  height: 100vh;
+  font-size: 16px;
+  font-family: Helvetica, sans-serif;
+}
+
+.l-gridwrap {
+  display: grid;
+  grid-template-columns: 150px auto;
+  grid-template-rows: 2.5rem 7rem auto;
+  height: 100%;
+}
+
+.l-header {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+
+.l-rowPanel {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  background-color: #e3eded;
+  border: 0px solid #e3eded;
+  overflow-x: scroll;
+  overflow-y: hidden;
+  white-space: nowrap;
+  transition: border 0.25s ease-in;
+}
+
+.l-statPanel {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 3;
+  grid-row-end: 4;
+  border-right: 1px solid #333;
+  color: #333;
+  padding: 0.5rem;
+  display: grid;
+  grid-template-columns: 100%;
+  grid-template-rows: 3rem 7rem auto;
+}
+
+.l-mainPanel {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 3;
+  grid-row-end: 4;
+  position: relative;
+  overflow: scroll;
+}
+
+/* --- Menu ------------------------- */
+.menu {
+  display: none;
+  background-color: #333;
+  color: #eee;
+  cursor: pointer;
+  border-radius: 3px;
+  padding: 4px;
+}
+
+.menu--headerMenu {
+  position: absolute;
+  top: 2.5rem;
+  left: 0;
+  z-index: 2;
+}
+
+.menu--thumbnailMenu {
+  display: inline-block;
+}
+
+.menu a {
+  color: #eee;
+  text-decoration: none;
+}
+
+.menu a:hover {
+  background-color: #eee;
+  color: #333;
+}
+
+.menu p:hover {
+  background-color: #eee;
+  color: #333;
+}
+
+/* --- Thumbnails ------------------------- */
+.thumbnail {
+  display: inline-grid;
+  height: 6rem;
+  border-right: 1px solid green;
+  padding: 0 0.25rem;
+  vertical-align: top;
+  grid-template-columns: auto auto;
+  grid-template-rows: 4.25rem 1.75rem;
+}
+
+.thumbnail__main {
+  grid-column-start: 1;
+  grid-column-end: 2;
+  grid-row-start: 1;
+  grid-row-end: 2;
+  position: relative;
+  text-align: left;
+}
+
+.thumbnail__main img {
+  height: 4rem;
+}
+
+.thumbnail__bottomWrap {
+  grid-column-start: 1;
+  grid-column-end: 3;
+  grid-row-start: 2;
+  grid-row-end: 3;
+  margin: auto 0.25rem;
+}
+
+.thumbnail__sidePanel {
+  grid-column-start: 2;
+  grid-column-end: 3;
+  grid-row-start: 1;
+  grid-row-end: 2;
+}
+
+.thumbnail__sidePanel > * {
+  vertical-align: top;
+}
+
+.cogButton--thumbnailCogButton {
+  fill: #84a1a1;
+}
+
+/* ---- Dialogs ------------------------------ */
+.modal__background {
+  display: none;
+  position: fixed;
+  background-color: rgba(0, 0, 0, 0.65);
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+  z-index: 3;
+}
+
+.modal {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #333;
+  color: #eee;
+  border: 1px solid #333;
+  border-radius: 4px;
+  padding: 1rem;
+}
+
+.modal__title {
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
+.modal__centerwrap {
+  text-align: center;
+}
+
+.modal__section {
+  border: 1px solid #333;
+  margin-bottom: 1.5rem;
+}
+
+.modal__sectionTitle {
+  margin-bottom: 0.5rem;
+}
+
+.modal__content p {
+  margin-bottom: 0.5rem;
+}
+
+/* ---- Linkbox ------------------------------ */
+.srclinkbox {
+  position: absolute;
+  border: 4px solid blue;
+}
+
+.srclinkbox--selected {
+  border: 4px solid pink;
+}
+
+.srclinkbox--tm {
+  position: absolute;
+  border: 1px solid blue;
+}
+
+/* --- Icons ------------------------- */
+.icon {
+  height: 0.8rem;
+}
+
+.icon--home {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background-color: #ccc;
+}
+
+/* --- Buttons ------------------------- */
+.cogButton {
+  height: 1rem;
+  width: 1rem;
+  cursor: pointer;
+}
+
+/* essentially, I view this svg as a button */
+.barsButton {
+  float: left;
+  margin-left: 0.5rem;
+  margin-top: 0.5rem;
+  height: 1.5rem;
+  fill: #333;
+  cursor: pointer;
+  -moz-user-select: none;
+  -webkit-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+.button {
+  cursor: pointer;
+  font-size: 1rem;
+  padding: 0 0.5rem;
+  color: #333;
+  background-color: #eee;
+  margin: 0 5px;
+}
+
+.button:active {
+  background-color: #bbbbbb;
+}
+
+.button--block {
+  width: 100%;
+  font-size: 1.2rem;
+  margin: 0;
+}
+
+.button--small {
+  font-size: 0.75rem;
+}
+
+/* --- header ------------------------- */
+.header {
+  font-size: 1.2rem;
+}
+
+.header--normalWeight {
+  font-weight: normal;
+  font-size: 16px;
+}
+
+.subheader--modal {
+  font-weight: normal;
+  font-size: 16px;
+  margin-bottom: 1rem;
+}
+
+/* ---- input fields ------------------------- */
+.inputLabel {
+  margin-bottom: 0.5rem;
+}
+
+.inputLabel__input {
+  display: block;
+}
+
+.inputLabel__label {
+  display: block;
+  font-size: 0.8rem;
+}
+
+/* ---- sections ------------------------- */
+.appendix {
+  font-size: 0.8rem;
+}
+
+/* ---- linkStat --------------------------- */
+.miniStat {
+  display: none;
+  border: 1px dotted pink;
+  border-radius: 4px;
+}
+
+.miniStat__header {
+  font-weight: normal;
+  font-size: 16px;
+  text-decoration: underline;
+  margin-bottom: 1rem;
+}
+
+.miniStat__field {
+  color: #eee;
+  background-color: #333;
+  text-align: right;
+  padding-right: 0.35rem;
+}
+
+.miniStat__centerWrap {
+  text-align: center;
+  margin: 1rem auto;
+}
+
+/* ---- main image display -------------------- */
+#fileDisplayImage {
+  max-width: 100%;
+  display: block;
+  position: relative;
+}
+
+/* ---- states ------------------------ */
+.is-value-not-set {
+  font-style: italic;
+}
+
+.is-open {
+  display: block;
+}
+
+.is-selectable-for-target {
+  border-top: 4px solid #9cd8d8;
+  border-bottom: 4px solid #9cd8d8;
+}
+
+/* ---- quick modifiers (used in content blocks)------------------------ */
+.float-left {
+  float: left;
+}
+
+.float-right {
+  float: right;
+}
+
+.clear-both {
+  clear: both;
+}
+
+.mr-10px {
+  margin-right: 10px;
+}
+
+.m10 {
+  margin: 10px;
+}

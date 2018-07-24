@@ -1,6 +1,11 @@
 # Linkbox
 Simple prototyping tool where you select screen mockup images, add linkboxes, select target screens for those linkboxes, select one screen as the home or starting point, and finally export an html file that along with your mockup images will represent the prototype.
 
+Check it out at [https://greendost.github.io/Linkbox/](https://greendost.github.io/Linkbox/)
+
+Sample prototypes
+- [Mock store](http://www.greendost.com/projects/samples/mockstore/proto1.html)
+
 ## Getting Started
 These instructions will allow you to setup and build the project on your local machine for development and testing purposes. 
 

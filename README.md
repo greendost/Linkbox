@@ -11,24 +11,24 @@ You should also have on hand a set of screen mockups (images) for the app you ar
 
 
 ### Installing
-Clone repository
-Run npm install
-Run Gulp in a dedicated terminal session, as it will watch for changes
-Open build/index.html in a browser
+- Clone repository
+- Run `npm install`
+- Run `gulp` in a dedicated terminal session, as it will watch for changes
+- Open `build/index.html` in a modern browser
 
 ## Running the tests
 Run unit tests along with coverage reports with the following:
-nyc mocha tests/linkbox_test.js
+`nyc mocha tests/linkbox_test.js`
 
 
 ## Deployment
 The final application is really just a simple web page, plus external CSS and JS files, which you could embed within the HTML file to make it one file.
 
 ## Built With
-Plain Vanilla JS, Pug, Sass, Gulp, Bundle-js, and various other packages to help with building, testing, etc.
+Plain Vanilla JS, Pug, CSS Grid, Sass, Gulp, Bundle-js, and various packages to help with building, testing, etc.  Makes use of SVG icons from [Font Awesome](https://fontawesome.com/). 
 
 ## Contributing
-Looking forward to any contributions, thoughts, and feedback.
+Looking forward to any contributions, thoughts, and feedback - in visual design, UX, or development.  Also, please feel free to reach out if interested in user testing.
 
 
 ## Versioning
@@ -40,7 +40,7 @@ Looking forward to any contributions, thoughts, and feedback.
 
 ## License
 
-This project is licensed under the Apache-2.0 License - see the [LICENSE.md](LICENSE.md) file for details
+This project is licensed under the Apache-2.0 License - see the [LICENSE](LICENSE) file for details
 
 ## Acknowledgments
 Too many to thank, but certainly this code stands on the shoulders of many - web browser developers, Node / NPM package developers, Sass developers, testing tool developers (jsdom, Mocha, Chai, istanbul/nyc).  And of course designers whom I have met over the past few years - this is a design tool after all! 
